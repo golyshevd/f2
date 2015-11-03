@@ -6,7 +6,7 @@ _fast and powerful string micro templating_
 
 ###Common
 
-####`{F2} new F2()`
+####`F2 new F2()`
 
 _class_
 
