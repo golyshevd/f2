@@ -2,6 +2,14 @@
 
 _fast and powerful string micro templating_
 
+##Installation
+
+The module available via [npm](https://www.npmjs.com/package/f2)
+
+```bash
+npm i f2 --save
+```
+
 ##API
 
 ###Common
