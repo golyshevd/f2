@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+'use strict';
+
+var Benchmark = require('benchmark').Benchmark;
+var Suite = Benchmark.Suite;
+var suite = new Suite();
+var util = require('util');
+
+var f2 = require('../');
+
+Benchmark.options.minSamples = 100;
+
+suite.add('util.format (%s)', function () {
+    util.format('foo %s bar %s baz', '42', '42');
+    util.format('foo %s bar %s baz %s zot', '42', '42', '42');
+    util.format('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
+});
+
+suite.add('f2.format (%s)', function () {
+    f2.format('foo %s bar %s baz', '42', '42');
+    f2.format('foo %s bar %s baz %s zot', '42', '42', '42');
+    f2.format('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
+});
+
+suite.on('cycle', function (event) {
+    console.log(String(event.target));
+});
+
+suite.on('complete', function () {
+    console.log();
+});
+
+suite.run({
+    queued: true,
+    async: true
+});

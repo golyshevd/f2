@@ -1,0 +1,29 @@
+{
+  "author": "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>",
+  "bugs": {
+    "url": "https://github.com/golyshevd/f2/issues"
+  },
+  "contributors": [
+    "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>"
+  ],
+  "dependencies": {
+    "json-stringify-safe": "~5.0.1",
+    "lru-dict": "0.0.1",
+    "obus": "~2.0.0"
+  },
+  "devDependencies": {
+    "benchmark": "~1.0.0",
+    "istanbul": "0.4.0",
+    "jscs": "~2.5.0",
+    "mocha": "~2.3.3"
+  },
+  "name": "f2",
+  "main": "index",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/golyshevd/f2.git"
+  },
+  "license": "MIT",
+  "description": "fast and powerful string micro templating"
+}
