@@ -1,32 +1,89 @@
 #!/usr/bin/env node
 'use strict';
 
+var path = require('path');
+var util = require('util');
+var fs = require('fs');
+
 var Benchmark = require('benchmark').Benchmark;
+var f2 = require('../');
+var sprintfjs = require('sprintf-js');
+
 var Suite = Benchmark.Suite;
 var suite = new Suite();
-var util = require('util');
 
-var f2 = require('../');
+var REGRESS_WATERMARK = 0.1;
+
+var currResults = {};
+
+function getResults() {
+    try {
+        return require(path.join(__dirname, 'benchmark.json'));
+    } catch (err) {
+        return {};
+    }
+}
+
+function setResults(results) {
+    fs.writeFileSync(path.join(__dirname, 'benchmark.json'), JSON.stringify(results, null, 4));
+}
 
 Benchmark.options.minSamples = 100;
 
-suite.add('util.format (%s)', function () {
+var member = {
+    person: {
+        name: 'Polly',
+        wants: 'cracker'
+    }
+};
+
+suite.add('util.format (args)', function () {
     util.format('foo %s bar %s baz', '42', '42');
     util.format('foo %s bar %s baz %s zot', '42', '42', '42');
     util.format('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
 });
 
-suite.add('f2.format (%s)', function () {
+suite.add('sprintfjs.sprintf (args)', function () {
+    sprintfjs.sprintf('foo %s bar %s baz', '42', '42');
+    sprintfjs.sprintf('foo %s bar %s baz %s zot', '42', '42', '42');
+    sprintfjs.sprintf('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
+});
+
+suite.add('f2.format (args)', function () {
     f2.format('foo %s bar %s baz', '42', '42');
     f2.format('foo %s bar %s baz %s zot', '42', '42', '42');
     f2.format('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
 });
 
+suite.add('sprintfjs.sprintf (kwargs)', function () {
+    sprintfjs.sprintf('%(name)s wants %(wants)s', member.person);
+    sprintfjs.sprintf('%(person.name)s wants %(person.wants)s', member);
+    sprintfjs.sprintf('%(member.person.name)s wants %(member.person.wants)s', {member: member});
+});
+
+suite.add('f2.format (kwargs)', function () {
+    f2.format('%(name)s wants %(wants)s', member.person);
+    f2.format('%(person.name)s wants %(person.wants)s', member);
+    f2.format('%(member.person.name)s wants %(member.person.wants)s', {member: member});
+});
+
 suite.on('cycle', function (event) {
+    currResults[event.target.name] = event.target.hz;
     console.log(String(event.target));
 });
 
 suite.on('complete', function () {
+    var prevResults = getResults();
+
+    Object.keys(currResults).forEach(function (name) {
+        var regressSize = (prevResults[name] / currResults[name]) - 1;
+        if (prevResults.hasOwnProperty(name) && regressSize > REGRESS_WATERMARK) {
+            throw new Error(f2.format('Regression in "%s": %d%!', name, regressSize * 100));
+        }
+    });
+
+    setResults(currResults);
+
     console.log();
 });
 
@@ -34,3 +91,8 @@ suite.run({
     queued: true,
     async: true
 });
+
+function sleep(ms) {
+    var start = new Date();
+    while (start + ms > Date.now()) {}
+}

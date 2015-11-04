@@ -15,7 +15,8 @@
     "benchmark": "~1.0.0",
     "istanbul": "0.4.0",
     "jscs": "~2.5.0",
-    "mocha": "~2.3.3"
+    "mocha": "~2.3.3",
+    "sprintf-js": "~1.0.3"
   },
   "name": "f2",
   "main": "index",
