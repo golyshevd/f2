@@ -232,18 +232,18 @@ F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offs
             subst = undefined;
         }
 
-        chunks[tmplItemsCount] = this.__formatTmplItem(tmplItem, subst);
+        chunks[tmplItemsCount] = this.__formatPlaceholder(tmplItem, subst);
     }
 
     return chunks.join('');
 };
 
-F2.prototype.__formatTmplItem = function (tmplItem, subst) {
+F2.prototype.__formatPlaceholder = function (ph, subst) {
     if (typeof subst === 'function') {
         subst = subst();
     }
 
-    return this.__types[tmplItem.subType](subst, tmplItem.sign, tmplItem.fill, tmplItem.width, tmplItem.precision);
+    return this.__types[ph.subType](subst, ph.sign, ph.fill, ph.width, ph.precision);
 };
 
 F2.prototype.__appendRestArgs = function (parts, args, offsetLeft, offsetRight) {
