@@ -1,8 +1,8 @@
-#f2 [![Build Status](https://travis-ci.org/golyshevd/f2.svg)](https://travis-ci.org/golyshevd/f2)
+# f2 [![Build Status](https://travis-ci.org/golyshevd/f2.svg)](https://travis-ci.org/golyshevd/f2)
 
 _fast and powerful string micro templating_
 
-##Installation
+## Installation
 
 The module available via [npm](https://www.npmjs.com/package/f2)
 
@@ -10,11 +10,11 @@ The module available via [npm](https://www.npmjs.com/package/f2)
 npm i f2 --save
 ```
 
-##API
+## API
 
-###Common
+### Common
 
-####`F2 new F2()`
+#### `F2 new F2()`
 
 _class_
 
@@ -23,7 +23,7 @@ var F2 = require('f2/f2');
 var f2 = new F2();
 ```
 
-The module provides a complete instance with built-in type formatters. 
+The module provides a complete instance with built-in substitution formatters. 
 
 ```js
 var f2 = require('f2');
@@ -31,7 +31,7 @@ var f2 = require('f2');
 
 A class reference needed only for advanced usage.
 
-####`String f2.format([String f][, * arg[, * arg...]])`
+#### `String f2.format([String f][, * arg[, * arg...]])`
 
 _method_
 
@@ -57,9 +57,9 @@ var f = require('f2/format');
 f('Lorem %s!', 'ipsum'); // -> 'Lorem ipsum!'
 ```
 
-###Advanced & sugar
+### Advanced & sugar
 
-####`String f2.applyArgs(Array args[, Number offsetL[, Number offsetR]])`
+#### `String f2.applyArgs(Array args[, Number offsetL[, Number offsetR]])`
 
 _method_
 
@@ -72,7 +72,7 @@ f2.applyArgs(['foobar', 'Lorem %s!', 'ipsum'], 1); // -> 'Lorem ipsum!'
 f2.applyArgs(['foobar', 'Lorem %s!', 'ipsum'], 1, 1); // -> 'Lorem undefined!' // oops!
 ```
 
-####`String f2.applyArgsTo(String f, Array args[, Number offsetL[, Number offsetR]])`
+#### `String f2.applyArgsTo(String f, Array args[, Number offsetL[, Number offsetR]])`
 
 _method_
 
@@ -84,7 +84,7 @@ f2.applyArgsTo('Lorem %s!', ['ipsum']); // -> 'Lorem ipsum!'
 f2.applyArgsTo('Lorem %s!', ['foobar', 'ipsum'], 1); // -> 'Lorem ipsum!'
 ```
 
-####`F2 f2.type(String type, Function formatter)`
+#### `F2 f2.type(String type, Function formatter)`
 
 _method_
 
@@ -101,28 +101,28 @@ f2.format('Lorem %b!', 'ipsum'); // -> 'Lorem [ipsum]!'
 
 There are available `s`, `d` and `j` formatters in bundled instance
 
-##Features
+## Features
 
-###Explicit indexes for positional arguments
+### Explicit indexes for positional arguments
 
 ```js
 f2.format('%2$s %1$s', 'foo', 'bar'); // -> 'bar foo'
 ```
 
-###Keyword arguments
+### Keyword arguments
 
 ```js
 f2.format('Login to %(user.name)s at %(time)s', {user: {name: 'golyshevd'}, time: 'Tomorrow'});
 // -> Login to golyshevd at Tomorrow
 ```
 
-###Inspecting extra arguments
+### Inspecting extra arguments
 
 ```js
 f2.format('Lorem %s', 'ipsum', 'dolor'); // -> 'Lorem ipsum \'dolor\''
 ```
 
-###Functional arguments
+### Functional arguments
 
 ```js
 f2.format('Lorem %s!', function () {
@@ -130,7 +130,7 @@ f2.format('Lorem %s!', function () {
 }); // -> 'Lorem ipsum!'
 ```
 
-###Substitution options
+### Substitution options
 
 Any substitution type can support options that can be passed in template between `%` and `<type>`
 
