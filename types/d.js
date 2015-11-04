@@ -4,40 +4,40 @@ var fillLeft = require('./utils/fill-left');
 var fillRight = require('./utils/fill-right');
 
 /*eslint-disable complexity*/
-function d(value, sign, fill, width, precision) {
+function d(v, s, f, w, p) {
     var pfx = '';
 
-    value = parseInt(value, 10);
+    v = parseInt(v, 10);
 
-    if (value < 0) {
+    if (v < 0) {
         // always add '-' on negative numbers
         pfx = '-';
-    } else if (sign === '+') {
+    } else if (s === '+') {
         // add '+' if explicitly specified
         pfx = '+';
     }
 
-    value = String(Math.abs(value));
+    v = String(Math.abs(v));
 
-    if (precision) {
-        value = fillLeft(value, '0', precision);
+    if (p) {
+        v = fillLeft(v, '0', p);
     }
 
-    value = pfx + value;
+    v = pfx + v;
 
-    if (!width) {
-        return value;
+    if (!w) {
+        return v;
     }
 
-    if (!fill) {
-        fill = ' ';
+    if (!f) {
+        f = ' ';
     }
 
-    if (sign === '-') {
-        return fillRight(value, fill, width);
+    if (s === '-') {
+        return fillRight(v, f, w);
     }
 
-    return fillLeft(value, fill, width);
+    return fillLeft(v, f, w);
 }
 /*eslint-enable complexity*/
 

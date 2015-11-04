@@ -1,11 +1,10 @@
 'use strict';
 
-var s = require('./s');
-var jsonStringify = require('json-stringify-safe');
+var _s = require('./s');
+var jsonStr = require('json-stringify-safe');
 
-function j(value, sign, fill, width, precision) {
-    value = jsonStringify(value);
-    return s(value, sign, fill, width, precision);
+function j(v, s, f, w, p) {
+    return _s(jsonStr(v), s, f, w, p);
 }
 
 module.exports = j;

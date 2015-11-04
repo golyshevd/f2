@@ -3,26 +3,26 @@
 var fillLeft = require('./utils/fill-left');
 var fillRight = require('./utils/fill-right');
 
-function s(value, sign, fill, width, precision) {
-    value = String(value);
+function s(v, s, f, w, p) {
+    v = String(v);
 
-    if (precision) {
-        value = value.substr(0, precision);
+    if (p) {
+        v = v.substr(0, p);
     }
 
-    if (!width) {
-        return value;
+    if (!w) {
+        return v;
     }
 
-    if (!fill) {
-        fill = ' ';
+    if (!f) {
+        f = ' ';
     }
 
-    if (sign === '-') {
-        return fillRight(value, fill, width);
+    if (s === '-') {
+        return fillRight(v, f, w);
     }
 
-    return fillLeft(value, fill, width);
+    return fillLeft(v, f, w);
 }
 
 module.exports = s;
