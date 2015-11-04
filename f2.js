@@ -16,8 +16,10 @@ var R_TYPE = /([a-z])/.source;
 var R_TEXT = /([^%]+)/.source;
 var R_PERC = /(%)%?/.source;
 
-var LEX = new RegExp('%(?:' + R_PATH + '|' + R_SWAP + '|)' +
-    R_SIGN + '(?:' + R_FILL + R_LENG + ')?' + R_PREC + R_TYPE + '|' + R_TEXT + '|' + R_PERC, 'g');
+var R_LEX = util.format('%(?:%s|%s|)%s(?:%s%s)?%s%s|%s|%s',
+    R_PATH, R_SWAP, R_SIGN, R_FILL, R_LENG, R_PREC, R_TYPE, R_TEXT, R_PERC);
+
+var LEX = new RegExp(R_LEX, 'g');
 
 function TmplItem(type, m) {
     this.type = type;
