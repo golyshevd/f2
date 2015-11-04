@@ -7,19 +7,19 @@ var Obus = require('obus');
 
 // jscs: disable
 var LEX =
-    /^(?:%(?:(?:\(((?:[^()]+|"[^"]*"|'[^']*')+)\))|([^0]\d*)\$|)([+-])?(?:(?:([\s\S]):)?(\d+))?(?:\.(\d+))?([a-z])|([^%]+)|(%)%?)/;
+    /(?:%(?:(?:\(((?:[^()]+|"[^"]*"|'[^']*')+)\))|([^0]\d*)\$|)([+-])?(?:(?:([\s\S]):)?(\d+))?(?:\.(\d+))?([a-z])|([^%]+)|(%)%?)/g;
 // jscs: enable
 
-function Item(type, vars) {
+function TmplItem(type, m) {
     this.type = type;
-    this.text = vars[0];
-    this.name = vars[1];
-    this.indx = vars[2];
-    this.sign = vars[3];
-    this.fill = vars[4];
-    this.leng = vars[5];
-    this.prec = vars[6];
-    this.kind = vars[7];
+    this.text = m[0];
+    this.path = m[1];
+    this.index = m[2];
+    this.sign = m[3];
+    this.fill = m[4];
+    this.width = m[5];
+    this.precision = m[6];
+    this.subType = m[7];
 }
 
 /**
@@ -50,20 +50,20 @@ function F2() {
  * @method
  *
  * @param {String} name
- * @param {Function} func
+ * @param {Function} formatter
  *
  * @returns {F2}
  * */
-F2.prototype.type = function (name, func) {
+F2.prototype.type = function (name, formatter) {
     if (typeof name !== 'string' || name.length !== 1) {
-        throw new TypeError('type name should be a string character');
+        throw new TypeError('Type name should be a string character');
     }
 
-    if (typeof func !== 'function') {
-        throw new TypeError('type formatter should be a function');
+    if (typeof formatter !== 'function') {
+        throw new TypeError('Type formatter should be a function');
     }
 
-    this.__types[name] = func;
+    this.__types[name] = formatter;
     // reset cache
     this.__cache.length = 0;
 
@@ -96,17 +96,13 @@ F2.prototype.format = function () {
  * @method
  *
  * @param {Array} args
- * @param {Number} [ofsL]
- * @param {Number} [ofsR]
+ * @param {Number} [offsetLeft]
+ * @param {Number} [offsetRight]
  *
  * @returns {String}
  * */
-F2.prototype.applyArgs = function (args, ofsL, ofsR) {
-    // to number
-    ofsL >>= 0;
-    // to number
-    ofsR >>= 0;
-    return this.__applyArgs(args, ofsL, ofsR);
+F2.prototype.applyArgs = function (args, offsetLeft, offsetRight) {
+    return this.__applyArgs(args, offsetLeft >> 0, offsetRight >> 0);
 };
 
 /**
@@ -114,19 +110,15 @@ F2.prototype.applyArgs = function (args, ofsL, ofsR) {
  * @memberOf {F2}
  * @method
  *
- * @param {String} tmpl
+ * @param {String} f
  * @param {Array} args
- * @param {Number} [ofsL]
- * @param {Number} [ofsR]
+ * @param {Number} [offsetLeft]
+ * @param {Number} [offsetRight]
  *
  * @returns {String}
  * */
-F2.prototype.applyArgsTo = function (tmpl, args, ofsL, ofsR) {
-    // to number
-    ofsL >>= 0;
-    // to number
-    ofsR >>= 0;
-    return this.__applyArgsTo(tmpl, args, ofsL, ofsR);
+F2.prototype.applyArgsTo = function (f, args, offsetLeft, offsetRight) {
+    return this.__applyArgsTo(f, args, offsetLeft >> 0, offsetRight >> 0);
 };
 
 /**
@@ -140,135 +132,145 @@ F2.prototype._inspect = function (v) {
     return util.inspect(v);
 };
 
-F2.prototype.__applyArgs = function (args, ofsL, ofsR) {
-    if (typeof args[ofsL] === 'string') {
-        return this.__applyArgsTo(args[ofsL], args, ofsL + 1, ofsR);
+F2.prototype.__applyArgs = function (args, offsetLeft, offsetRight) {
+    if (typeof args[offsetLeft] === 'string') {
+        return this.__applyArgsTo(args[offsetLeft], args, offsetLeft + 1, offsetRight);
     }
 
-    return this.__rest([], args, ofsL, ofsR);
+    return this.__appendRestArgs([], args, offsetLeft, offsetRight);
 };
 
-F2.prototype.__applyArgsTo = function (tmpl, args, ofsL, ofsR) {
-    var pattern = this.__expandTmpl(tmpl);
-    ofsR += Number(pattern.karg);
-    return this.__rest([this.__formatBySubs(pattern.subs, args, ofsL, ofsR)], args, ofsL + pattern.next, ofsR);
+F2.prototype.__applyArgsTo = function (f, args, offsetLeft, offsetRight) {
+    var tmpl = this.__pickTmpl(f);
+    offsetRight += Number(tmpl.containsKwargs);
+
+    return this.__appendRestArgs([this.__substituteTmplItems(tmpl.items, args, offsetLeft, offsetRight)],
+        args, offsetLeft + tmpl.restArgsIndex, offsetRight);
 };
 
-F2.prototype.__expandTmpl = function (tmpl) {
-    if (!this.__cache.peek(tmpl)) {
-        this.__cache.set(tmpl, this.__createTmpl(tmpl));
+F2.prototype.__pickTmpl = function (f) {
+    var tmpl = this.__cache.get(f);
+
+    if (!tmpl) {
+        tmpl = this.__parseF(f);
+        this.__cache.set(f, tmpl);
     }
 
-    return this.__cache.get(tmpl);
+    return tmpl;
 };
 
-F2.prototype.__createTmpl = function (tmpl) {
-    var impl = 0;
-    var karg = false;
-    var leng = 0;
-    var next = -1;
-    var subs = [];
-    var vars = null;
+F2.prototype.__parseF = function (f) {
+    var autoIndex = 0;
+    var containsKwargs = false;
+    var itemsCount = 0;
+    var m = null;
+    var restArgsIndex = -1;
+    var tmplItems = [];
+
+    LEX.lastIndex = 0;
 
     /*eslint no-cond-assign: 0*/
-    while (vars = LEX.exec(tmpl)) {
-        tmpl = tmpl.substr(vars[0].length);
+    while (m = LEX.exec(f)) {
 
-        if (!vars[7] || typeof this.__types[vars[7]] !== 'function') {
-            vars = [vars[8] || vars[9] || vars[0]];
+        if (!m[7] || typeof this.__types[m[7]] !== 'function') {
+            // text node
+            m = [m[8] || m[9] || m[0]];
 
-            if (leng > 0 && subs[leng - 1].type === 'TXT') {
-                subs[leng - 1].text += vars[0];
+            if (itemsCount > 0 && tmplItems[itemsCount - 1].type === 'TXT') {
+                // merge sibling text nodes
+                tmplItems[itemsCount - 1].text += m[0];
             } else {
-                leng = subs.push(new Item('TXT', vars));
+                itemsCount = tmplItems.push(new TmplItem('TXT', m));
             }
 
             continue;
         }
 
-        if (vars[1]) {
-            leng = subs.push(new Item('KEY', vars));
-            karg = true;
+        if (m[1]) {
+            // kwarg
+            itemsCount = tmplItems.push(new TmplItem('KEY', m));
+            containsKwargs = true;
 
             continue;
         }
 
-        if (vars[2]) {
+        // positional arg
+
+        if (m[2]) {
             // explicit index
-            vars[2] -= 1;
+            m[2] -= 1;
         } else {
             // implicit index
-            vars[2] = impl;
-            impl += 1;
+            m[2] = autoIndex;
+            autoIndex += 1;
         }
 
-        next = Math.max(vars[2], next);
+        restArgsIndex = Math.max(m[2], restArgsIndex);
 
-        leng = subs.push(new Item('POS', vars));
+        itemsCount = tmplItems.push(new TmplItem('POS', m));
     }
 
-    next += 1;
+    restArgsIndex += 1;
 
     return {
-        // next argument link
-        next: next,
-        // substitutions array
-        subs: subs,
-        // does template contain %(kwargs)s ?
-        karg: karg
+        containsKwargs: containsKwargs,
+        items: tmplItems,
+        restArgsIndex: restArgsIndex,
     };
 };
 
-F2.prototype.__formatBySubs = function (subs, args, ofsL, ofsR) {
+F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offsetRight) {
     var argc = args.length;
-    var item;
-    var subc = subs.length;
-    var vals = new Array(subc);
-    var word;
+    var tmplItem;
+    var tmplItemsCount = tmplItems.length;
+    var chunks = new Array(tmplItemsCount);
+    var subst;
 
-    while (subc) {
-        subc -= 1;
-        item = subs[subc];
+    while (tmplItemsCount) {
+        tmplItemsCount -= 1;
+        tmplItem = tmplItems[tmplItemsCount];
 
-        if (item.type === 'TXT') {
-            vals[subc] = item.text;
+        if (tmplItem.type === 'TXT') {
+            chunks[tmplItemsCount] = tmplItem.text;
             continue;
         }
 
-        if (item.type === 'KEY') {
-            word = Obus.get(args[argc - ofsR], item.name);
+        if (tmplItem.type === 'KEY') {
+            subst = Obus.get(args[argc - offsetRight], tmplItem.path);
         } else
-        // item.type === 'POS'
-        if (item.indx + ofsL < argc - ofsR) {
-            word = args[item.indx + ofsL];
+        // tmplItem.type === 'POS'
+        if (tmplItem.index + offsetLeft < argc - offsetRight) {
+            subst = args[tmplItem.index + offsetLeft];
         } else {
-            word = undefined;
+            subst = undefined;
         }
 
-        vals[subc] = this.__formatWord(word, item);
+        chunks[tmplItemsCount] = this.__formatTmplItem(tmplItem, subst);
     }
 
-    return vals.join('');
+    return chunks.join('');
 };
 
-F2.prototype.__rest = function (rest, args, ofsL, ofsR) {
-    var i = ofsL;
-    var l = args.length - ofsR;
+F2.prototype.__formatTmplItem = function (tmplItem, subst) {
+    if (typeof subst === 'function') {
+        subst = subst();
+    }
+
+    return this.__types[tmplItem.subType](subst, tmplItem.sign, tmplItem.fill, tmplItem.width, tmplItem.precision);
+};
+
+F2.prototype.__appendRestArgs = function (parts, args, offsetLeft, offsetRight) {
+    var i = offsetLeft;
+    var l = args.length - offsetRight;
+    var j = parts.length;
 
     while (i < l) {
-        rest.push(this._inspect(args[i]));
+        parts[j] = this._inspect(args[i]);
+        j += 1;
         i += 1;
     }
 
-    return rest.join(' ');
-};
-
-F2.prototype.__formatWord = function (word, part) {
-    if (typeof word === 'function') {
-        word = word();
-    }
-
-    return this.__types[part.kind](word, part.sign, part.fill, part.leng, part.prec);
+    return parts.join(' ');
 };
 
 /**
