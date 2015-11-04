@@ -20,7 +20,7 @@
   },
   "name": "f2",
   "main": "index",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "git://github.com/golyshevd/f2.git"
