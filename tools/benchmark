@@ -73,7 +73,7 @@ suite.add('(args swapping) sprintfjs.sprintf', function () {
     sprintfjs.sprintf('%3$s %2$s %1$s', '1', '2', '3');
 });
 
-suite.add('(args swapping) sprintfjs.sprintf', function () {
+suite.add('(args swapping) f2.format', function () {
     f2.format('%1$s', '1');
     f2.format('%2$s %1$s', '1', '2');
     f2.format('%3$s %2$s %1$s', '1', '2', '3');
