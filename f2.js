@@ -6,10 +6,18 @@ var LRUD = require('lru-dict');
 var obus_get = require('obus/_get');
 var obusParse = require('obus/parse');
 
-// jscs: disable
-var LEX =
-    /(?:%(?:(?:\(((?:[^()]+|"[^"]*"|'[^']*')+)\))|([^0]\d*)\$|)([+-])?(?:(?:([\s\S]):)?(\d+))?(?:\.(\d+))?([a-z])|([^%]+)|(%)%?)/g;
-// jscs: enable
+var R_PATH = /(?:\(((?:[^()]+|"[^"]*"|'[^']*')+)\))/.source;
+var R_SWAP = /([^0]\d*)\$/.source;
+var R_SIGN = /([+-])?/.source;
+var R_FILL = /(?:([\s\S]):)?/.source;
+var R_LENG = /(\d+)/.source;
+var R_PREC = /(?:\.(\d+))?/.source;
+var R_TYPE = /([a-z])/.source;
+var R_TEXT = /([^%]+)/.source;
+var R_PERC = /(%)%?/.source;
+
+var LEX = new RegExp('%(?:' + R_PATH + '|' + R_SWAP + '|)' +
+    R_SIGN + '(?:' + R_FILL + R_LENG + ')?' + R_PREC + R_TYPE + '|' + R_TEXT + '|' + R_PERC, 'g');
 
 function TmplItem(type, m) {
     this.type = type;
