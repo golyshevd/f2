@@ -261,6 +261,8 @@ F2.prototype.__appendRestArgs = function (parts, args, offsetLeft, offsetRight) 
 };
 
 F2.prototype.__f2 = function () {
+    var self = this;
+
     function format() {
         // clone arguments to allow V8 optimize the function
         var argc = arguments.length;
@@ -271,10 +273,8 @@ F2.prototype.__f2 = function () {
             args[argc] = arguments[argc];
         }
 
-        return format.self.__applyArgs(args, 0, 0);
+        return self.__applyArgs(args, 0, 0);
     }
-
-    format.self = this;
 
     return format;
 };
