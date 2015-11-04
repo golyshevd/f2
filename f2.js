@@ -3,7 +3,8 @@
 var util = require('util');
 
 var LRUD = require('lru-dict');
-var Obus = require('obus');
+var _objGet = require('obus/_get');
+var _oParse = require('obus/parse');
 
 // jscs: disable
 var LEX =
@@ -13,7 +14,7 @@ var LEX =
 function TmplItem(type, m) {
     this.type = type;
     this.text = m[0];
-    this.path = m[1];
+    this.path = _oParse(m[1]);
     this.index = m[2];
     this.sign = m[3];
     this.fill = m[4];
@@ -222,7 +223,7 @@ F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offs
         }
 
         if (tmplItem.type === 'KEY') {
-            subst = Obus.get(args[argc - offsetRight], tmplItem.path);
+            subst = _objGet(args[argc - offsetRight], tmplItem.path);
         } else
         // tmplItem.type === 'POS'
         if (tmplItem.index + offsetLeft < argc - offsetRight) {
