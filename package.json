@@ -25,6 +25,13 @@
     "type": "git",
     "url": "git://github.com/golyshevd/f2.git"
   },
+  "keywords": [
+    "strf",
+    "format",
+    "sprintf",
+    "vsprintf",
+    "template"
+  ],
   "license": "MIT",
   "description": "fast and powerful string micro templating"
 }
