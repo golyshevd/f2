@@ -202,7 +202,7 @@ F2.prototype.__parseF = function (f) {
     return {
         containsKwargs: containsKwargs,
         items: tmplItems,
-        restArgsIndex: restArgsIndex,
+        restArgsIndex: restArgsIndex
     };
 };
 
