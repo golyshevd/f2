@@ -26,21 +26,7 @@ function TmplItem(type, m) {
  * @class F2
  * */
 function F2() {
-
-    /**
-     * @private
-     * @memberOf {F2}
-     * @property
-     * @type {LRUD}
-     * */
     this.__cache = new LRUD(255);
-
-    /**
-     * @private
-     * @memberOf {F2}
-     * @property
-     * @type {Object}
-     * */
     this.__types = {};
 }
 
