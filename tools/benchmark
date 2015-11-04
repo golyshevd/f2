@@ -6,7 +6,7 @@ var util = require('util');
 var fs = require('fs');
 
 var Benchmark = require('benchmark').Benchmark;
-var f2 = require('../');
+var f2 = require('../').format;
 var sprintfjs = require('sprintf-js');
 
 var Suite = Benchmark.Suite;
@@ -49,10 +49,10 @@ suite.add('(args) sprintfjs.sprintf', function () {
     sprintfjs.sprintf('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
 });
 
-suite.add('(args) f2.format', function () {
-    f2.format('foo %s bar %s baz', '42', '42');
-    f2.format('foo %s bar %s baz %s zot', '42', '42', '42');
-    f2.format('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
+suite.add('(args) f2', function () {
+    f2('foo %s bar %s baz', '42', '42');
+    f2('foo %s bar %s baz %s zot', '42', '42', '42');
+    f2('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
 });
 
 suite.add('(kwargs) sprintfjs.sprintf', function () {
@@ -61,10 +61,10 @@ suite.add('(kwargs) sprintfjs.sprintf', function () {
     sprintfjs.sprintf('%(member.person.name)s wants %(member.person.wants)s', {member: member});
 });
 
-suite.add('(kwargs) f2.format', function () {
-    f2.format('%(name)s wants %(wants)s', member.person);
-    f2.format('%(person.name)s wants %(person.wants)s', member);
-    f2.format('%(member.person.name)s wants %(member.person.wants)s', {member: member});
+suite.add('(kwargs) f2', function () {
+    f2('%(name)s wants %(wants)s', member.person);
+    f2('%(person.name)s wants %(person.wants)s', member);
+    f2('%(member.person.name)s wants %(member.person.wants)s', {member: member});
 });
 
 suite.add('(args swapping) sprintfjs.sprintf', function () {
@@ -73,10 +73,10 @@ suite.add('(args swapping) sprintfjs.sprintf', function () {
     sprintfjs.sprintf('%3$s %2$s %1$s', '1', '2', '3');
 });
 
-suite.add('(args swapping) f2.format', function () {
-    f2.format('%1$s', '1');
-    f2.format('%2$s %1$s', '1', '2');
-    f2.format('%3$s %2$s %1$s', '1', '2', '3');
+suite.add('(args swapping) f2', function () {
+    f2('%1$s', '1');
+    f2('%2$s %1$s', '1', '2');
+    f2('%3$s %2$s %1$s', '1', '2', '3');
 });
 
 suite.on('cycle', function (event) {
@@ -90,7 +90,7 @@ suite.on('complete', function () {
     Object.keys(currResults).forEach(function (name) {
         var regressSize = (prevResults[name] / currResults[name]) - 1;
         if (prevResults.hasOwnProperty(name) && regressSize > REGRESS_WATERMARK) {
-            throw new Error(f2.format('Regression in "%s": %d%!', name, regressSize * 100));
+            throw new Error(f2('Regression in "%s": %d%!', name, regressSize * 100));
         }
     });
 
@@ -108,3 +108,8 @@ function sleep(ms) {
     var start = new Date();
     while (start + ms > Date.now()) {}
 }
+
+process.on('uncaughtException', function (err) {
+    process.stderr.write(err.stack);
+    process.exit(1);
+});

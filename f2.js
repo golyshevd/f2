@@ -27,6 +27,16 @@ function TmplItem(type, m) {
  * @class F2
  * */
 function F2() {
+
+    /**
+     * @public
+     * @memberOf {F2}
+     * @method
+     *
+     * @returns {String}
+     * */
+    this.format = this.__f2();
+
     this.__cache = new LRUD(255);
     this.__types = {};
 }
@@ -55,26 +65,6 @@ F2.prototype.type = function (name, formatter) {
     this.__cache.length = 0;
 
     return this;
-};
-
-/**
- * @public
- * @memberOf {F2}
- * @method
- *
- * @returns {String}
- * */
-F2.prototype.format = function () {
-    // clone arguments to allow V8 optimize the function
-    var argc = arguments.length;
-    var args = new Array(argc);
-
-    while (argc) {
-        argc -= 1;
-        args[argc] = arguments[argc];
-    }
-
-    return this.__applyArgs(args, 0, 0);
 };
 
 /**
@@ -258,6 +248,25 @@ F2.prototype.__appendRestArgs = function (parts, args, offsetLeft, offsetRight) 
     }
 
     return parts.join(' ');
+};
+
+F2.prototype.__f2 = function () {
+    function format() {
+        // clone arguments to allow V8 optimize the function
+        var argc = arguments.length;
+        var args = new Array(argc);
+
+        while (argc) {
+            argc -= 1;
+            args[argc] = arguments[argc];
+        }
+
+        return format.self.__applyArgs(args, 0, 0);
+    }
+
+    format.self = this;
+
+    return format;
 };
 
 /**
