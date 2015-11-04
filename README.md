@@ -43,6 +43,19 @@ f2.format('Lorem %s!', 'ipsum'); // -> 'Lorem ipsum!'
 ```
 
 Common method. See the full templates features below.
+The method is bound to instance, it can be used as static function
+
+```js
+var f = require('f2').format;
+f('Lorem %s!', 'ipsum'); // -> 'Lorem ipsum!'
+```
+
+Also the method is represented as separate module
+
+```js
+var f = require('f2/format');
+f('Lorem %s!', 'ipsum'); // -> 'Lorem ipsum!'
+```
 
 ###Advanced & sugar
 
@@ -99,8 +112,8 @@ f2.format('%2$s %1$s', 'foo', 'bar'); // -> 'bar foo'
 ###Keyword arguments
 
 ```js
-f2.format('Login to %(user.name)s at %(time)s', {user: {name: 'golyshevd'}, time: 'Tommorrow'}); 
-// -> Login to golyshevd at Tommorrow
+f2.format('Login to %(user.name)s at %(time)s', {user: {name: 'golyshevd'}, time: 'Tomorrow'});
+// -> Login to golyshevd at Tomorrow
 ```
 
 ###Inspecting extra arguments
@@ -125,7 +138,7 @@ Any substitution type can support options that can be passed in template between
 f2.format('Lorem %-?:5.3s!', 'ipsum'); // 'Lorem ips??!'
 ```
 
-There are `fill`, `sign`, `width` and `precision`. Every formatter can interpretate parameters handling in their own way. All parameters are available in substitution formatter function body.
+There are `fill`, `sign`, `width` and `precision`. Every formatter can interpret parameters handling in their own way. All parameters are available in substitution formatter function body.
 
 ```js
 f2.type('b', function (value, fill, sign, width, precision) {
