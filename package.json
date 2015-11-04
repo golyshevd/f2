@@ -9,7 +9,7 @@
   "dependencies": {
     "json-stringify-safe": "~5.0.1",
     "lru-dict": "0.0.1",
-    "obus": "~2.0.0"
+    "obus": "~2.1.0"
   },
   "devDependencies": {
     "benchmark": "~1.0.0",

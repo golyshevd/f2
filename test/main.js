@@ -121,6 +121,7 @@ describe('f2', function () {
 
         it('Should support kwargs', function () {
             assert.strictEqual(f2.format('%s, %d, %(foo)s, %%s', 'foo', 42, {foo: 'bar'}), 'foo, 42, bar, %s');
+            assert.strictEqual(f2.format('%(data["\\""])s', {data: {'"': 42}}), '42');
         });
 
         it('Should use the last argument as kwargs', function () {

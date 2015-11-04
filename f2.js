@@ -6,7 +6,7 @@ var LRUD = require('lru-dict');
 var obus_get = require('obus/_get');
 var obusParse = require('obus/parse');
 
-var R_PATH = /(?:\(((?:[^()]+|"[^"]*"|'[^']*')+)\))/.source;
+var R_PATH = /(?:\(((?:"(?:\\[\s\S]|[^"])*"|'(?:\\[\s\S]|[^'])*'|[^()]+)+)\))/.source;
 var R_SWAP = /([^0]\d*)\$/.source;
 var R_SIGN = /([+-])?/.source;
 var R_FILL = /(?:([\s\S]):)?/.source;
