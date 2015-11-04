@@ -6,8 +6,9 @@ var util = require('util');
 var fs = require('fs');
 
 var Benchmark = require('benchmark').Benchmark;
-var f = require('../').format;
 var sprintfjs = require('sprintf-js');
+
+var f = require('../').format;
 
 var Suite = Benchmark.Suite;
 var suite = new Suite();
