@@ -8,8 +8,8 @@
   ],
   "dependencies": {
     "json-stringify-safe": "~5.0.1",
-    "lru-dict": "0.0.1",
-    "obus": "~2.1.3"
+    "lru-dict": "0.1.1",
+    "obus": "~2.1.4"
   },
   "devDependencies": {
     "benchmark": "~1.0.0",
