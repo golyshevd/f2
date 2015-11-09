@@ -174,10 +174,10 @@ describe('f2', function () {
         });
 
         it('Should support deep kwargs', function () {
-            assert.strictEqual(f2.format('Hello, %(who[1])s!', {
+            assert.strictEqual(f2.format('Hello, %(who["1"])s!', {
                 who: ['nobody', 'golyshevd']
             }), 'Hello, golyshevd!');
-            assert.strictEqual(f2.format('Hello, %(["who"][1])s!', {
+            assert.strictEqual(f2.format('Hello, %(["who"]["1"])s!', {
                 who: ['nobody', 'golyshevd']
             }), 'Hello, golyshevd!');
         });
