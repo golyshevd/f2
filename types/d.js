@@ -7,7 +7,7 @@ var fillRight = require('./utils/fill-right');
 function d(v, s, f, w, p) {
     var pfx = '';
 
-    v = parseInt(v, 10);
+    v = Number(v);
 
     if (v < 0) {
         // always add '-' on negative numbers

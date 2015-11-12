@@ -98,6 +98,10 @@ describe('f2', function () {
         it('Precision should not be trimmed by width', function () {
             assert.strictEqual(d('5', v, ' ', '3', '5'), '00005');
         });
+
+        it('Should format objects with valueOf methods returning numbers to numbers', function () {
+            assert.strictEqual(d({valueOf: function () {return 42;}}, v, ' ', v, v), '42');
+        });
     });
 
     describe('f2.format', function () {
