@@ -9,7 +9,7 @@
   "dependencies": {
     "json-stringify-safe": "~5.0.1",
     "lru-dict": "0.1.1",
-    "obus": "~3.0.0"
+    "obus": "~4.0.0"
   },
   "devDependencies": {
     "benchmark": "~1.0.0",
@@ -20,7 +20,7 @@
   },
   "name": "f2",
   "main": "index",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/golyshevd/f2.git"
