@@ -9,14 +9,14 @@ var obusParse = require('obus/parse');
 var R_PATH = /(?:\(((?:"(?:\\[\s\S]|[^"])*"|'(?:\\[\s\S]|[^'])*'|[^()]+)+)\))/.source;
 var R_SWAP = /([^0]\d*)\$/.source;
 var R_SIGN = /([+-])?/.source;
-var R_FILL = /(?:([\s\S]):)?/.source;
+var R_FILL = /(?:([\s\S]):)/.source;
 var R_LENG = /(\d+)/.source;
-var R_PREC = /(?:\.(\d+))?/.source;
+var R_PREC = /(?:\.(\d+))/.source;
 var R_TYPE = /([a-z])/.source;
 var R_TEXT = /([^%]+)/.source;
 var R_PERC = /(%)%?/.source;
 
-var R_LEX = util.format('%(?:%s|%s|)%s(?:%s%s)?%s%s|%s|%s',
+var R_LEX = util.format('%(?:%s|%s|)(?:(?:%s)?%s?%s)?%s?%s|%s|%s',
     R_PATH, R_SWAP, R_SIGN, R_FILL, R_LENG, R_PREC, R_TYPE, R_TEXT, R_PERC);
 
 var LEX = new RegExp(R_LEX, 'g');

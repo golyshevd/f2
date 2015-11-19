@@ -275,6 +275,9 @@ describe('f2', function () {
             });
         });
 
+        it('Should not support sign without width', function () {
+            assert.strictEqual(f2.format('%-s', 42), '%-s 42');
+        });
     });
 
     describe('f2.type', function () {
