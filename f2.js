@@ -48,6 +48,7 @@ function F2() {
     this.format = this.__f2();
 
     this.__cache = new LRUD(255);
+
     this.__types = {};
 }
 
@@ -161,7 +162,7 @@ F2.prototype.__parseF = function (f) {
 
         if (!m[7] || typeof this.__types[m[7]] !== 'function') {
             // text node
-            m = [m[8] || m[9] || m[0]];
+            m = [m[8] || m[9] || m[0], undefined, undefined, undefined, undefined, undefined, undefined, undefined];
 
             if (itemsCount > 0 && tmplItems[itemsCount - 1].type === 'TXT') {
                 // merge sibling text nodes
