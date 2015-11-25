@@ -37,6 +37,9 @@ function TmplItem(type, m) {
  * @class F2
  * */
 function F2() {
+    this.__cache = new LRUD(255);
+
+    this.__types = {};
 
     /**
      * @public
@@ -46,10 +49,6 @@ function F2() {
      * @returns {String}
      * */
     this.format = this.__f2();
-
-    this.__cache = new LRUD(255);
-
-    this.__types = {};
 }
 
 /**
