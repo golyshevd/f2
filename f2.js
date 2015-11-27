@@ -3,7 +3,7 @@
 var util = require('util');
 
 var LRUD = require('lru-dict');
-var obus_get = require('obus/_get');
+var obusGet = require('obus/_get');
 var obusParse = require('obus/parse');
 
 var R_PATH = /(?:\(((?:"(?:\\[\s\S]|[^"])*"|'(?:\\[\s\S]|[^'])*'|[^()]+)+)\))/.source;
@@ -147,6 +147,7 @@ F2.prototype.__pickTmpl = function (f) {
 };
 
 F2.prototype.__parseF = function (f) {
+    /*eslint complexity: 0*/
     var autoIndex = 0;
     var containsKwargs = false;
     var itemsCount = 0;
@@ -223,7 +224,7 @@ F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offs
         }
 
         if (tmplItem.type === 'KEY') {
-            subst = obus_get(args[argc - offsetRight], tmplItem.path);
+            subst = obusGet(args[argc - offsetRight], tmplItem.path);
         } else
         // tmplItem.type === 'POS'
         if (tmplItem.index + offsetLeft < argc - offsetRight) {

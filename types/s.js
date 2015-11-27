@@ -3,7 +3,7 @@
 var fillLeft = require('./utils/fill-left');
 var fillRight = require('./utils/fill-right');
 
-function s(v, s, f, w, p) {
+function _s(v, s, f, w, p) {
     v = String(v);
 
     if (p) {
@@ -25,4 +25,4 @@ function s(v, s, f, w, p) {
     return fillLeft(v, f, w);
 }
 
-module.exports = s;
+module.exports = _s;

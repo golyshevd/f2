@@ -3,7 +3,7 @@
 'use strict';
 
 var assert = require('assert');
-var v = void 0;
+var u = void 0;
 describe('f2', function () {
     var F2 = require('../f2');
 
@@ -11,30 +11,30 @@ describe('f2', function () {
         var s = require('../types/s');
 
         it('Should format value as string', function () {
-            assert.strictEqual(s('foo', v, ' ', v, v), 'foo');
-            assert.strictEqual(s({}, v, ' ', v, v), String({}));
+            assert.strictEqual(s('foo', u, ' ', u, u), 'foo');
+            assert.strictEqual(s({}, u, ' ', u, u), String({}));
         });
 
         it('Should support precision', function () {
-            assert.strictEqual(s('foobar', v, ' ', v, '3'), 'foo');
+            assert.strictEqual(s('foobar', u, ' ', u, '3'), 'foo');
         });
 
         it('Should support width', function () {
-            assert.strictEqual(s('foo', v, ' ', '5', v), '  foo');
+            assert.strictEqual(s('foo', u, ' ', '5', u), '  foo');
         });
 
         it('Should support fill', function () {
-            assert.strictEqual(s('foo', v, 'x', '5', v), 'xxfoo');
-            assert.strictEqual(s('foo', v, '0', '5', v), '00foo');
-            assert.strictEqual(s('foo', v, ':', '5', v), '::foo');
+            assert.strictEqual(s('foo', u, 'x', '5', u), 'xxfoo');
+            assert.strictEqual(s('foo', u, '0', '5', u), '00foo');
+            assert.strictEqual(s('foo', u, ':', '5', u), '::foo');
         });
 
         it('Should support "-" sign', function () {
-            assert.strictEqual(s('foo', '-', ' ', '5', v), 'foo  ');
+            assert.strictEqual(s('foo', '-', ' ', '5', u), 'foo  ');
         });
 
         it('Should support " " fill by default', function () {
-            assert.strictEqual(s('foo', v, v, '5', v), '  foo');
+            assert.strictEqual(s('foo', u, u, '5', u), '  foo');
         });
     });
 
@@ -42,14 +42,14 @@ describe('f2', function () {
         var j = require('../types/j');
 
         it('Should stringify JSON', function () {
-            assert.strictEqual(j({}, v, ' ', v, v), '{}');
+            assert.strictEqual(j({}, u, ' ', u, u), '{}');
         });
 
         it('Should not fail on circular JSON', function () {
             var o = {};
             o.o = o;
             assert.doesNotThrow(function () {
-                j(o, v, ' ', v, v);
+                j(o, u, ' ', u, u);
             });
         });
 
@@ -62,45 +62,49 @@ describe('f2', function () {
         var d = require('../types/d');
 
         it('Should format as Number', function () {
-            assert.strictEqual(d('5', v, ' ', v, v), '5');
+            assert.strictEqual(d('5', u, ' ', u, u), '5');
         });
 
         it('Should add "-" to negative numbers', function () {
-            assert.strictEqual(d('-5', v, ' ', v, v), '-5');
+            assert.strictEqual(d('-5', u, ' ', u, u), '-5');
         });
 
         it('Should support "+" sign', function () {
-            assert.strictEqual(d('-5', '+', ' ', v, v), '-5');
-            assert.strictEqual(d('-5', '-', ' ', v, v), '-5');
-            assert.strictEqual(d('5', '+', ' ', v, v), '+5');
+            assert.strictEqual(d('-5', '+', ' ', u, u), '-5');
+            assert.strictEqual(d('-5', '-', ' ', u, u), '-5');
+            assert.strictEqual(d('5', '+', ' ', u, u), '+5');
         });
 
         it('Should support precision', function () {
-            assert.strictEqual(d('5', v, ' ', v, '3'), '005');
+            assert.strictEqual(d('5', u, ' ', u, '3'), '005');
         });
 
         it('Should support "-" sign for width', function () {
-            assert.strictEqual(d('5', '-', ' ', '3', v), '5  ');
+            assert.strictEqual(d('5', '-', ' ', '3', u), '5  ');
         });
 
         it('Should support fill', function () {
-            assert.strictEqual(d('5', '+', 'x', '3', v), 'x+5');
+            assert.strictEqual(d('5', '+', 'x', '3', u), 'x+5');
         });
 
         it('Should support " " fill by default', function () {
-            assert.strictEqual(d('5', '+', v, '3', v), ' +5');
+            assert.strictEqual(d('5', '+', u, '3', u), ' +5');
         });
 
         it('Should left padded by " " according to width', function () {
-            assert.strictEqual(d('5', v, ' ', '3', v), '  5');
+            assert.strictEqual(d('5', u, ' ', '3', u), '  5');
         });
 
         it('Precision should not be trimmed by width', function () {
-            assert.strictEqual(d('5', v, ' ', '3', '5'), '00005');
+            assert.strictEqual(d('5', u, ' ', '3', '5'), '00005');
         });
 
         it('Should format objects with valueOf methods returning numbers to numbers', function () {
-            assert.strictEqual(d({valueOf: function () {return 42;}}, v, ' ', v, v), '42');
+            assert.strictEqual(d({
+                valueOf: function () {
+                    return 42;
+                }
+            }, u, ' ', u, u), '42');
         });
     });
 
@@ -137,7 +141,7 @@ describe('f2', function () {
         });
 
         it('Should not skip undefined values', function () {
-            assert.strictEqual(f2.format('%s, %s, %(foo)s', 'foo', v, {}), 'foo, undefined, undefined');
+            assert.strictEqual(f2.format('%s, %s, %(foo)s', 'foo', u, {}), 'foo, undefined, undefined');
         });
 
         it('Should skip unsupported types', function () {
@@ -207,71 +211,75 @@ describe('f2', function () {
         });
 
         it('Should support functions for kwargs', function () {
-            assert.strictEqual(f2.format('%(foo)s', {foo: function () {return 'bar';}}), 'bar');
+            assert.strictEqual(f2.format('%(foo)s', {
+                foo: function () {
+                    return 'bar';
+                }
+            }), 'bar');
         });
 
         describe('Support explicit index', function () {
-            var f2 = new F2();
+            var _f2 = new F2();
 
-            f2.type('s', function (v) {
+            _f2.type('s', function (v) {
                 return String(v);
             });
 
             it('Should support explicit index links', function () {
-                assert.strictEqual(f2.format('%2$s %1$s', 'a', 'b'), 'b a');
-                assert.strictEqual(f2.format('%2$s %1$s %3$s', 'a', 'b', 'c'), 'b a c');
-                assert.strictEqual(f2.format('%1$s %2$s %3$s', 'a', 'b', 'c'), 'a b c');
-                assert.strictEqual(f2.format('%3$s %2$s %1$s', 'a', 'b', 'c'), 'c b a');
+                assert.strictEqual(_f2.format('%2$s %1$s', 'a', 'b'), 'b a');
+                assert.strictEqual(_f2.format('%2$s %1$s %3$s', 'a', 'b', 'c'), 'b a c');
+                assert.strictEqual(_f2.format('%1$s %2$s %3$s', 'a', 'b', 'c'), 'a b c');
+                assert.strictEqual(_f2.format('%3$s %2$s %1$s', 'a', 'b', 'c'), 'c b a');
             });
 
             it('Should support extra args', function () {
-                assert.strictEqual(f2.format('%2$s %1$s', 'a', 'b', 'c'), 'b a \'c\'');
-                assert.strictEqual(f2.format('%1$s %1$s', 'a', 'b', 'c', 'd'), 'a a \'b\' \'c\' \'d\'');
-                assert.strictEqual(f2.format('%2$s %1$s', 'a', 'b', 'c', 'd'), 'b a \'c\' \'d\'');
-                assert.strictEqual(f2.format('%3$s %1$s', 'a', 'b', 'c', 'd'), 'c a \'d\'');
-                assert.strictEqual(f2.format('%1$s %2$s', 'a', 'b', 'c', 'd'), 'a b \'c\' \'d\'');
+                assert.strictEqual(_f2.format('%2$s %1$s', 'a', 'b', 'c'), 'b a \'c\'');
+                assert.strictEqual(_f2.format('%1$s %1$s', 'a', 'b', 'c', 'd'), 'a a \'b\' \'c\' \'d\'');
+                assert.strictEqual(_f2.format('%2$s %1$s', 'a', 'b', 'c', 'd'), 'b a \'c\' \'d\'');
+                assert.strictEqual(_f2.format('%3$s %1$s', 'a', 'b', 'c', 'd'), 'c a \'d\'');
+                assert.strictEqual(_f2.format('%1$s %2$s', 'a', 'b', 'c', 'd'), 'a b \'c\' \'d\'');
             });
 
             it('Should support explicit and implicit indexes', function () {
-                assert.strictEqual(f2.format('%s %1$s %2$s', 'a', 'b'), 'a a b');
-                assert.strictEqual(f2.format('%1$s %s %2$s', 'a', 'b'), 'a a b');
-                assert.strictEqual(f2.format('%1$s %2$s %s', 'a', 'b'), 'a b a');
+                assert.strictEqual(_f2.format('%s %1$s %2$s', 'a', 'b'), 'a a b');
+                assert.strictEqual(_f2.format('%1$s %s %2$s', 'a', 'b'), 'a a b');
+                assert.strictEqual(_f2.format('%1$s %2$s %s', 'a', 'b'), 'a b a');
 
-                assert.strictEqual(f2.format('%s %1$s %2$s %3$s', 'a', 'b', 'c'), 'a a b c');
-                assert.strictEqual(f2.format('%1$s %s %2$s %3$s', 'a', 'b', 'c'), 'a a b c');
-                assert.strictEqual(f2.format('%1$s %2$s %s %3$s', 'a', 'b', 'c'), 'a b a c');
-                assert.strictEqual(f2.format('%1$s %2$s %3$s %s', 'a', 'b', 'c'), 'a b c a');
+                assert.strictEqual(_f2.format('%s %1$s %2$s %3$s', 'a', 'b', 'c'), 'a a b c');
+                assert.strictEqual(_f2.format('%1$s %s %2$s %3$s', 'a', 'b', 'c'), 'a a b c');
+                assert.strictEqual(_f2.format('%1$s %2$s %s %3$s', 'a', 'b', 'c'), 'a b a c');
+                assert.strictEqual(_f2.format('%1$s %2$s %3$s %s', 'a', 'b', 'c'), 'a b c a');
             });
 
             it('Should support explicit and implicit indexes with extra args', function () {
-                assert.strictEqual(f2.format('%s %1$s %2$s', 'a', 'b', 'c', 'd'), 'a a b \'c\' \'d\'');
-                assert.strictEqual(f2.format('%1$s %s %2$s', 'a', 'b', 'c', 'd'), 'a a b \'c\' \'d\'');
-                assert.strictEqual(f2.format('%1$s %2$s %s', 'a', 'b', 'c', 'd'), 'a b a \'c\' \'d\'');
+                assert.strictEqual(_f2.format('%s %1$s %2$s', 'a', 'b', 'c', 'd'), 'a a b \'c\' \'d\'');
+                assert.strictEqual(_f2.format('%1$s %s %2$s', 'a', 'b', 'c', 'd'), 'a a b \'c\' \'d\'');
+                assert.strictEqual(_f2.format('%1$s %2$s %s', 'a', 'b', 'c', 'd'), 'a b a \'c\' \'d\'');
 
-                assert.strictEqual(f2.format('%s %1$s %2$s %3$s', 'a', 'b', 'c', 'd'), 'a a b c \'d\'');
-                assert.strictEqual(f2.format('%1$s %s %2$s %3$s', 'a', 'b', 'c', 'd'), 'a a b c \'d\'');
-                assert.strictEqual(f2.format('%1$s %2$s %s %3$s', 'a', 'b', 'c', 'd'), 'a b a c \'d\'');
-                assert.strictEqual(f2.format('%1$s %2$s %3$s %s', 'a', 'b', 'c', 'd'), 'a b c a \'d\'');
+                assert.strictEqual(_f2.format('%s %1$s %2$s %3$s', 'a', 'b', 'c', 'd'), 'a a b c \'d\'');
+                assert.strictEqual(_f2.format('%1$s %s %2$s %3$s', 'a', 'b', 'c', 'd'), 'a a b c \'d\'');
+                assert.strictEqual(_f2.format('%1$s %2$s %s %3$s', 'a', 'b', 'c', 'd'), 'a b a c \'d\'');
+                assert.strictEqual(_f2.format('%1$s %2$s %3$s %s', 'a', 'b', 'c', 'd'), 'a b c a \'d\'');
             });
 
             it('Should support explicit indexes and kwargs', function () {
-                assert.strictEqual(f2.format('%1$s %(foo)s', 'a', {foo: 'b'}), 'a b');
-                assert.strictEqual(f2.format('%1$s %(foo)s %2$s', 'a', 'c', {foo: 'b'}), 'a b c');
+                assert.strictEqual(_f2.format('%1$s %(foo)s', 'a', {foo: 'b'}), 'a b');
+                assert.strictEqual(_f2.format('%1$s %(foo)s %2$s', 'a', 'c', {foo: 'b'}), 'a b c');
             });
 
             it('Should support explicit indexes and kwargs with extra args', function () {
-                assert.strictEqual(f2.format('%1$s %(foo)s', 'a', 'c', {foo: 'b'}), 'a b \'c\'');
-                assert.strictEqual(f2.format('%1$s %(foo)s %2$s', 'a', 'c', 'd', {foo: 'b'}), 'a b c \'d\'');
+                assert.strictEqual(_f2.format('%1$s %(foo)s', 'a', 'c', {foo: 'b'}), 'a b \'c\'');
+                assert.strictEqual(_f2.format('%1$s %(foo)s %2$s', 'a', 'c', 'd', {foo: 'b'}), 'a b c \'d\'');
             });
 
             it('Should support explicit indexes, implicit indexes and kwargs', function () {
-                assert.strictEqual(f2.format('%1$s %(foo)s %s', 'a', {foo: 'b'}), 'a b a');
-                assert.strictEqual(f2.format('%1$s %(foo)s %2$s %s', 'a', 'c', {foo: 'b'}), 'a b c a');
+                assert.strictEqual(_f2.format('%1$s %(foo)s %s', 'a', {foo: 'b'}), 'a b a');
+                assert.strictEqual(_f2.format('%1$s %(foo)s %2$s %s', 'a', 'c', {foo: 'b'}), 'a b c a');
             });
 
             it('Should support explicit indexes, implicit indexes and kwargs width extra args', function () {
-                assert.strictEqual(f2.format('%1$s %(foo)s %s', 'a', 'c', {foo: 'b'}), 'a b a \'c\'');
-                assert.strictEqual(f2.format('%1$s %(foo)s %2$s %s', 'a', 'c', 'd', {foo: 'b'}), 'a b c a \'d\'');
+                assert.strictEqual(_f2.format('%1$s %(foo)s %s', 'a', 'c', {foo: 'b'}), 'a b a \'c\'');
+                assert.strictEqual(_f2.format('%1$s %(foo)s %2$s %s', 'a', 'c', 'd', {foo: 'b'}), 'a b c a \'d\'');
             });
         });
 

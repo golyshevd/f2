@@ -10,10 +10,15 @@ test:: cover
 
 .PHONY: lint
 lint:: jscs
+lint:: eslint
 
 .PHONY: jscs
 jscs:
 	@jscs test tools types *.js
+
+.PHONY: eslint
+eslint:
+	@eslint test tools types *.js
 
 .PHONY: cover
 cover:
