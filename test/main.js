@@ -3,6 +3,8 @@
 'use strict';
 
 var assert = require('assert');
+var util = require('util');
+
 var u = void 0;
 describe('f2', function () {
     var F2 = require('../f2');
@@ -116,6 +118,8 @@ describe('f2', function () {
 
         it('Should interpret "%%" sequences as "%"', function () {
             assert.strictEqual(f2.format('%%%%'), '%%');
+            assert.strictEqual(f2.format('%%s', 'foo'), '%s \'foo\'');
+            assert.strictEqual(f2.format('%%%s', 'foo'), '%foo');
         });
 
         it('Should interpret single unmatched "%" as "%"', function () {
@@ -374,6 +378,39 @@ describe('f2', function () {
 
         it('Should apply ofsL and ofsR to 0 by default', function () {
             assert.strictEqual(f2.applyArgsTo('%s', [1]), '1');
+        });
+    });
+
+    describe('f2.isPattern()', function () {
+        var f2 = new F2().
+            type('s', require('../types/s')).
+            type('d', require('../types/d')).
+            type('j', require('../types/j'));
+
+        it('Should have .isPattern() method', function () {
+            assert.strictEqual(typeof f2.isPattern, 'function');
+        });
+
+        var samples = {
+            'foo-bar': false,
+            'foo%(bar)s': true,
+            'foo%(bar)d': true,
+            'foo%(bar)j': true,
+            'foo%(bar)z': false,
+            'foo%%(bar)s': false,
+            'foo%%%(bar)s': true,
+            'foo%s': true,
+            'foo%d': true,
+            'foo%j': true,
+            'foo%z': false,
+            'foo%%s': false,
+            'foo%%%s': true
+        };
+
+        Object.keys(samples).forEach(function (s) {
+            it(util.format('"%s" should %sbe a pattern', s, samples[s] ? '' : 'not '), function () {
+                assert.strictEqual(f2.isPattern(s), samples[s]);
+            });
         });
     });
 

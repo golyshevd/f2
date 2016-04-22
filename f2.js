@@ -123,6 +123,22 @@ F2.prototype.applyArgsTo = function (f, args, offsetLeft, offsetRight) {
 };
 
 /**
+ * Check if the passed argument is pattern
+ *
+ * @public
+ * @memberOf {F2}
+ * @method
+ *
+ * @param {String} f
+ *
+ * @returns {Boolean}
+ * */
+F2.prototype.isPattern = function (f) {
+    var tmpl = this.__pickTmpl(f);
+    return (tmpl.containsKwargs | tmpl.restArgsIndex) > 0;
+};
+
+/**
  * @protected
  * @memberOf {F2}
  * @method
