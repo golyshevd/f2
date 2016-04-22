@@ -161,7 +161,7 @@ F2.prototype.__parseF = function (f) {
     while (m = LEX.exec(f)) {
 
         if (!m[7] || typeof this.__types[m[7]] !== 'function') {
-            // text node
+            // text node (no type match, or no type formatter)
             m = [m[8] || m[9] || m[0], undefined, undefined, undefined, undefined, undefined, undefined, undefined];
 
             if (itemsCount > 0 && tmplItems[itemsCount - 1].type === 'TXT') {
@@ -175,7 +175,7 @@ F2.prototype.__parseF = function (f) {
         }
 
         if (m[1]) {
-            // kwarg
+            // keyword argument
             itemsCount = tmplItems.push(new TmplItem('KEY', m));
             containsKwargs = true;
 
@@ -185,10 +185,10 @@ F2.prototype.__parseF = function (f) {
         // positional arg
 
         if (m[2]) {
-            // explicit index
+            // explicit index like `%1$s`
             m[2] -= 1;
         } else {
-            // implicit index
+            // implicit index like `%s`
             m[2] = autoIndex;
             autoIndex += 1;
         }
@@ -208,7 +208,7 @@ F2.prototype.__parseF = function (f) {
 };
 
 F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offsetRight) {
-    var argc = args.length;
+    var argc = args.length - offsetRight;
     var tmplItem;
     var tmplItemsCount = tmplItems.length;
     var chunks = new Array(tmplItemsCount);
@@ -224,12 +224,14 @@ F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offs
         }
 
         if (tmplItem.type === 'KEY') {
-            subst = obusGet(args[argc - offsetRight], tmplItem.path);
+            subst = obusGet(args[argc], tmplItem.path);
         } else
         // tmplItem.type === 'POS'
-        if (tmplItem.index + offsetLeft < argc - offsetRight) {
+        if (tmplItem.index + offsetLeft < argc) {
+            // use positional arg if index fit to range
             subst = args[tmplItem.index + offsetLeft];
         } else {
+            // index is not fit to range
             subst = undefined;
         }
 
