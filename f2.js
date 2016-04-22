@@ -2,7 +2,7 @@
 
 var util = require('util');
 
-var LRUD = require('lru-dict');
+var LRUDict = require('lru-dict');
 var obusGet = require('obus/_get');
 var obusParse = require('obus/parse');
 
@@ -37,7 +37,7 @@ function TmplItem(type, m) {
  * @class F2
  * */
 function F2() {
-    this.__cache = new LRUD(255);
+    this.__cache = new LRUDict(255);
 
     this.__types = {};
 
