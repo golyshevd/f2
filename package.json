@@ -7,16 +7,16 @@
     "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>"
   ],
   "dependencies": {
-    "eslint": "^1.10.1",
     "json-stringify-safe": "~5.0.1",
     "lru-dict": "0.1.1",
     "obus": "~5.0.1"
   },
   "devDependencies": {
-    "benchmark": "~1.0.0",
-    "istanbul": "0.4.1",
+    "eslint": "^1.10.1",
+    "benchmark": "~2.1.0",
+    "istanbul": "0.4.3",
     "jscs": "~2.6.0",
-    "mocha": "~2.3.4",
+    "mocha": "~2.4.5",
     "sprintf-js": "~1.0.3"
   },
   "name": "f2",

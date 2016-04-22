@@ -13,19 +13,22 @@ lint:: jscs
 lint:: eslint
 
 .PHONY: jscs
-jscs:
+jscs: node_modules/**
 	@jscs test tools types *.js
 
 .PHONY: eslint
-eslint:
+eslint: node_modules/**
 	@eslint test tools types *.js
 
 .PHONY: cover
-cover:
+cover: node_modules/**
 	@rm -rf coverage
 	@mkdir -p coverage
 	@istanbul cover node_modules/.bin/_mocha
 
 .PHONY: benchmark
-benchmark:
+benchmark: node_modules/**
 	@./tools/benchmark
+
+node_modules/**: package.json
+	@npm install
