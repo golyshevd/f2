@@ -53,6 +53,20 @@ function F2() {
 
 /**
  * @public
+ * @static
+ * @memberOf {F2}
+ * @method
+ *
+ * @param {Object} [params]
+ *
+ * @returns {F2}
+ * */
+F2.create = function (params) {
+    return new this(params);
+};
+
+/**
+ * @public
  * @memberOf {F2}
  * @method
  *
@@ -207,6 +221,20 @@ F2.prototype.__parseF = function (f) {
     };
 };
 
+F2.prototype.__appendRestArgs = function (parts, args, offsetLeft, offsetRight) {
+    var i = offsetLeft;
+    var l = args.length - offsetRight;
+    var j = parts.length;
+
+    while (i < l) {
+        parts[j] = this._inspect(args[i]);
+        j += 1;
+        i += 1;
+    }
+
+    return parts.join(' ');
+};
+
 F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offsetRight) {
     var argc = args.length - offsetRight;
     var tmplItem;
@@ -249,20 +277,6 @@ F2.prototype.__formatPlaceholder = function (ph, subst) {
     return this.__types[ph.subType](subst, ph.sign, ph.fill, ph.width, ph.precision);
 };
 
-F2.prototype.__appendRestArgs = function (parts, args, offsetLeft, offsetRight) {
-    var i = offsetLeft;
-    var l = args.length - offsetRight;
-    var j = parts.length;
-
-    while (i < l) {
-        parts[j] = this._inspect(args[i]);
-        j += 1;
-        i += 1;
-    }
-
-    return parts.join(' ');
-};
-
 F2.prototype.__f2 = function () {
     var self = this;
 
@@ -280,20 +294,6 @@ F2.prototype.__f2 = function () {
     }
 
     return format;
-};
-
-/**
- * @public
- * @static
- * @memberOf {F2}
- * @method
- *
- * @param {Object} [params]
- *
- * @returns {F2}
- * */
-F2.create = function (params) {
-    return new this(params);
 };
 
 module.exports = F2;
