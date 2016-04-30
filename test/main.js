@@ -419,4 +419,58 @@ describe('f2', function () {
             assert.ok(F2.create() instanceof F2);
         });
     });
+
+    describe('f2.hasKeySub()', function () {
+        var f2 = new F2().
+            type('s', require('../types/s')).
+            type('d', require('../types/d')).
+            type('j', require('../types/j'));
+
+        it('Should have .hasKeySub() method', function () {
+            assert.strictEqual(typeof f2.hasKeySub, 'function');
+        });
+
+        var samples = [
+            ['%(foo)s', 'foo', true],
+            ['%(foo)s', 'bar', false],
+            ['%(foo)x', 'foo', false],
+            ['%(foo)s', '.foo', true],
+            ['%(foo)s', ' .foo ', true],
+            ['%(foo)s', ' [ "foo" ] ', true],
+            ['%(foo.bar)s', ' [ "foo" ].bar ', true],
+            ['%(foo.bar)s', ' foo ', true],
+            ['%(a.b.c)s', 'a', true],
+            ['%(a.b.c)s', 'a.b', true],
+            ['%(a.b.c)s', 'a.b.c', true]
+        ];
+
+        samples.forEach(function (s) {
+            it(util.format('"%s" should %shave "%s" sub', s[0], s[2] ? '' : 'not ', s[1]), function () {
+                assert.strictEqual(f2.hasKeySub(s[0], s[1]), s[2]);
+            });
+        });
+    });
+
+    describe('f2.hasPosSub()', function () {
+        var f2 = new F2().
+            type('s', require('../types/s')).
+            type('d', require('../types/d')).
+            type('j', require('../types/j'));
+
+        it('Should have .hasPosSub() method', function () {
+            assert.strictEqual(typeof f2.hasPosSub, 'function');
+        });
+
+        var samples = [
+            ['%s', 1, true],
+            ['%s', 2, false],
+            ['%s %d', 2, true]
+        ];
+
+        samples.forEach(function (s) {
+            it(util.format('"%s" should %shave "%s" sub', s[0], s[2] ? '' : 'not ', s[1]), function () {
+                assert.strictEqual(f2.hasPosSub(s[0], s[1]), s[2]);
+            });
+        });
+    });
 });

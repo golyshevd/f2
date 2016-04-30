@@ -21,16 +21,17 @@ var R_LEX = util.format('%(?:%s|%s|)(?:(?:%s)?%s?%s)?%s?%s|%s|%s',
 
 var LEX = new RegExp(R_LEX, 'g');
 
-function TmplItem(type, m) {
+function TmplItem(type, text, path, index, sign, fill, width, precision, subType) {
+    /* eslint max-params: 1 */
     this.type = type;
-    this.text = m[0];
-    this.path = obusParse(m[1]);
-    this.index = m[2];
-    this.sign = m[3];
-    this.fill = m[4];
-    this.width = m[5];
-    this.precision = m[6];
-    this.subType = m[7];
+    this.text = text;
+    this.path = path;
+    this.index = index;
+    this.sign = sign;
+    this.fill = fill;
+    this.width = width;
+    this.precision = precision;
+    this.subType = subType;
 }
 
 /**
@@ -139,6 +140,48 @@ F2.prototype.isPattern = function (f) {
 };
 
 /**
+ * Check if the passed pattern has key substitution
+ *
+ * @public
+ * @memberOf {F2}
+ * @method
+ *
+ * @param {String} f
+ * @param {String} name
+ *
+ * @returns {Boolean}
+ * */
+F2.prototype.hasKeySub = function (f, name) {
+    var path = obusParse(name);
+
+    return this.__pickTmpl(f).items.some(function (item) {
+        return item.type === 'KEY' &&
+            path.every(function (node, i) {
+                return node === item.path[i];
+            });
+    });
+};
+
+/**
+ * Check if the passed pattern has index substitution
+ *
+ * @public
+ * @memberOf {F2}
+ * @method
+ *
+ * @param {String} f
+ * @param {Number} name
+ *
+ * @returns {Boolean}
+ * */
+F2.prototype.hasPosSub = function (f, name) {
+    name -= 1;
+    return this.__pickTmpl(f).items.some(function (item) {
+        return item.type === 'POS' && item.index === name;
+    });
+};
+
+/**
  * @protected
  * @memberOf {F2}
  * @method
@@ -192,13 +235,12 @@ F2.prototype.__parseF = function (f) {
 
         if (!m[7] || typeof this.__types[m[7]] !== 'function') {
             // text node (no type match, or no type formatter)
-            m = [m[8] || m[9] || m[0], undefined, undefined, undefined, undefined, undefined, undefined, undefined];
-
             if (itemsCount > 0 && tmplItems[itemsCount - 1].type === 'TXT') {
                 // merge sibling text nodes
-                tmplItems[itemsCount - 1].text += m[0];
+                tmplItems[itemsCount - 1].text += m[8] || m[9] || m[0];
             } else {
-                itemsCount = tmplItems.push(new TmplItem('TXT', m));
+                itemsCount = tmplItems.push(new TmplItem('TXT',
+                    m[8] || m[9] || m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7]));
             }
 
             continue;
@@ -206,7 +248,8 @@ F2.prototype.__parseF = function (f) {
 
         if (m[1]) {
             // keyword argument
-            itemsCount = tmplItems.push(new TmplItem('KEY', m));
+            itemsCount = tmplItems.push(new TmplItem('KEY',
+                m[0], obusParse(m[1]), m[2], m[3], m[3], m[5], m[6], m[7]));
             containsKwargs = true;
 
             continue;
@@ -225,7 +268,8 @@ F2.prototype.__parseF = function (f) {
 
         restArgsIndex = Math.max(m[2], restArgsIndex);
 
-        itemsCount = tmplItems.push(new TmplItem('POS', m));
+        itemsCount = tmplItems.push(new TmplItem('POS',
+            m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7]));
     }
 
     restArgsIndex += 1;
