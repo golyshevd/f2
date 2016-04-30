@@ -21,7 +21,7 @@
   },
   "name": "f2",
   "main": "index",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "repository": {
     "type": "git",
     "url": "git://github.com/golyshevd/f2.git"
