@@ -49,7 +49,7 @@ function F2() {
      *
      * @returns {String}
      * */
-    this.format = this.__f2();
+    this.format = getFormat(this);
 }
 
 /**
@@ -104,7 +104,7 @@ F2.prototype.type = function (name, formatter) {
  * @returns {String}
  * */
 F2.prototype.applyArgs = function (args, offsetLeft, offsetRight) {
-    return this.__applyArgs(args, offsetLeft >> 0, offsetRight >> 0);
+    return applyArgs(this, args, offsetLeft >> 0, offsetRight >> 0);
 };
 
 /**
@@ -120,7 +120,7 @@ F2.prototype.applyArgs = function (args, offsetLeft, offsetRight) {
  * @returns {String}
  * */
 F2.prototype.applyArgsTo = function (f, args, offsetLeft, offsetRight) {
-    return this.__applyArgsTo(f, args, offsetLeft >> 0, offsetRight >> 0);
+    return applyArgsTo(this, f, args, offsetLeft >> 0, offsetRight >> 0);
 };
 
 /**
@@ -135,7 +135,7 @@ F2.prototype.applyArgsTo = function (f, args, offsetLeft, offsetRight) {
  * @returns {Boolean}
  * */
 F2.prototype.isPattern = function (f) {
-    var tmpl = this.__pickTmpl(f);
+    var tmpl = pickTmpl(this, f);
     return (tmpl.containsKwargs | tmpl.restArgsIndex) > 0;
 };
 
@@ -192,34 +192,35 @@ F2.prototype._inspect = function (v) {
     return util.inspect(v);
 };
 
-F2.prototype.__applyArgs = function (args, offsetLeft, offsetRight) {
+function applyArgs(f2, args, offsetLeft, offsetRight) {
     if (typeof args[offsetLeft] === 'string') {
-        return this.__applyArgsTo(args[offsetLeft], args, offsetLeft + 1, offsetRight);
+        return applyArgsTo(f2, args[offsetLeft], args, offsetLeft + 1, offsetRight);
     }
 
-    return this.__appendRestArgs([], args, offsetLeft, offsetRight);
-};
+    return appendRestArgs(f2, [], args, offsetLeft, offsetRight);
+}
 
-F2.prototype.__applyArgsTo = function (f, args, offsetLeft, offsetRight) {
-    var tmpl = this.__pickTmpl(f);
+function applyArgsTo(f2, f, args, offsetLeft, offsetRight) {
+    var tmpl = pickTmpl(f2, f);
+
     offsetRight += Number(tmpl.containsKwargs);
 
-    return this.__appendRestArgs([this.__substituteTmplItems(tmpl.items, args, offsetLeft, offsetRight)],
+    return appendRestArgs(f2, [substituteTmplItems(f2, tmpl.items, args, offsetLeft, offsetRight)],
         args, offsetLeft + tmpl.restArgsIndex, offsetRight);
-};
+}
 
-F2.prototype.__pickTmpl = function (f) {
-    var tmpl = this.__cache.get(f);
+function pickTmpl(f2, f) {
+    var tmpl = f2.__cache.get(f);
 
     if (!tmpl) {
-        tmpl = this.__parseF(f);
-        this.__cache.set(f, tmpl);
+        tmpl = parseF(f2, f);
+        f2.__cache.set(f, tmpl);
     }
 
     return tmpl;
-};
+}
 
-F2.prototype.__parseF = function (f) {
+function parseF(f2, f) {
     /*eslint complexity: 0*/
     var autoIndex = 0;
     var containsKwargs = false;
@@ -233,7 +234,7 @@ F2.prototype.__parseF = function (f) {
     /*eslint no-cond-assign: 0*/
     while (m = LEX.exec(f)) {
 
-        if (!m[7] || typeof this.__types[m[7]] !== 'function') {
+        if (!m[7] || typeof f2.__types[m[7]] !== 'function') {
             // text node (no type match, or no type formatter)
             if (itemsCount > 0 && tmplItems[itemsCount - 1].type === 'TXT') {
                 // merge sibling text nodes
@@ -279,23 +280,23 @@ F2.prototype.__parseF = function (f) {
         items: tmplItems,
         restArgsIndex: restArgsIndex
     };
-};
+}
 
-F2.prototype.__appendRestArgs = function (parts, args, offsetLeft, offsetRight) {
+function appendRestArgs(f2, parts, args, offsetLeft, offsetRight) {
     var i = offsetLeft;
     var l = args.length - offsetRight;
     var j = parts.length;
 
     while (i < l) {
-        parts[j] = this._inspect(args[i]);
+        parts[j] = f2._inspect(args[i]);
         j += 1;
         i += 1;
     }
 
     return parts.join(' ');
-};
+}
 
-F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offsetRight) {
+function substituteTmplItems(f2, tmplItems, args, offsetLeft, offsetRight) {
     var argc = args.length - offsetRight;
     var tmplItem;
     var tmplItemsCount = tmplItems.length;
@@ -323,23 +324,21 @@ F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offs
             subst = undefined;
         }
 
-        chunks[tmplItemsCount] = this.__formatPlaceholder(tmplItem, subst);
+        chunks[tmplItemsCount] = formatPlaceholder(f2, tmplItem, subst);
     }
 
     return chunks.join('');
-};
+}
 
-F2.prototype.__formatPlaceholder = function (ph, subst) {
+function formatPlaceholder(f2, ph, subst) {
     if (typeof subst === 'function') {
         subst = subst();
     }
 
-    return this.__types[ph.subType](subst, ph.sign, ph.fill, ph.width, ph.precision);
-};
+    return f2.__types[ph.subType](subst, ph.sign, ph.fill, ph.width, ph.precision);
+}
 
-F2.prototype.__f2 = function () {
-    var self = this;
-
+function getFormat(f2) {
     function format() {
         // clone arguments to allow V8 optimize the function
         var argc = arguments.length;
@@ -350,10 +349,10 @@ F2.prototype.__f2 = function () {
             args[argc] = arguments[argc];
         }
 
-        return self.__applyArgs(args, 0, 0);
+        return applyArgs(f2, args, 0, 0);
     }
 
     return format;
-};
+}
 
 module.exports = F2;
