@@ -104,7 +104,7 @@ F2.prototype.type = function (name, formatter) {
  * @returns {String}
  * */
 F2.prototype.applyArgs = function (args, offsetLeft, offsetRight) {
-    return this.__applyArgs(args, offsetLeft >> 0, offsetRight >> 0);
+    return this.__applyArgs(args, offsetLeft | 0, offsetRight | 0);
 };
 
 /**
@@ -120,7 +120,7 @@ F2.prototype.applyArgs = function (args, offsetLeft, offsetRight) {
  * @returns {String}
  * */
 F2.prototype.applyArgsTo = function (f, args, offsetLeft, offsetRight) {
-    return this.__applyArgsTo(f, args, offsetLeft >> 0, offsetRight >> 0);
+    return this.__applyArgsTo(f, args, offsetLeft | 0, offsetRight | 0);
 };
 
 /**
@@ -136,6 +136,7 @@ F2.prototype.applyArgsTo = function (f, args, offsetLeft, offsetRight) {
  * */
 F2.prototype.isPattern = function (f) {
     var tmpl = this.__pickTmpl(f);
+
     return (tmpl.containsKwargs | tmpl.restArgsIndex) > 0;
 };
 
@@ -202,6 +203,7 @@ F2.prototype.__applyArgs = function (args, offsetLeft, offsetRight) {
 
 F2.prototype.__applyArgsTo = function (f, args, offsetLeft, offsetRight) {
     var tmpl = this.__pickTmpl(f);
+
     offsetRight += Number(tmpl.containsKwargs);
 
     return this.__appendRestArgs([this.__substituteTmplItems(tmpl.items, args, offsetLeft, offsetRight)],
@@ -220,7 +222,7 @@ F2.prototype.__pickTmpl = function (f) {
 };
 
 F2.prototype.__parseF = function (f) {
-    /*eslint complexity: 0*/
+    /* eslint complexity: 0 */
     var autoIndex = 0;
     var containsKwargs = false;
     var itemsCount = 0;
@@ -230,7 +232,7 @@ F2.prototype.__parseF = function (f) {
 
     LEX.lastIndex = 0;
 
-    /*eslint no-cond-assign: 0*/
+    /* eslint no-cond-assign: 0 */
     while (m = LEX.exec(f)) {
 
         if (!m[7] || typeof this.__types[m[7]] !== 'function') {
@@ -320,7 +322,7 @@ F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offs
             subst = args[tmplItem.index + offsetLeft];
         } else {
             // index is not fit to range
-            subst = undefined;
+            subst = undefined; // eslint-disable-line no-undefined
         }
 
         chunks[tmplItemsCount] = this.__formatPlaceholder(tmplItem, subst);
@@ -338,7 +340,7 @@ F2.prototype.__formatPlaceholder = function (ph, subst) {
 };
 
 F2.prototype.__f2 = function () {
-    var self = this;
+    var that = this;
 
     function format() {
         // clone arguments to allow V8 optimize the function
@@ -350,7 +352,7 @@ F2.prototype.__f2 = function () {
             args[argc] = arguments[argc];
         }
 
-        return self.__applyArgs(args, 0, 0);
+        return that.__applyArgs(args, 0, 0);
     }
 
     return format;

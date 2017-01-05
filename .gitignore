@@ -1,3 +1,4 @@
+/.npm
 /coverage
 /node_modules
 /tools/benchmark.json

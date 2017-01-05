@@ -1,10 +1,10 @@
 'use strict';
 
 var _s = require('./s');
-var jsonStr = require('json-stringify-safe');
+var jsonStr = require('fast-safe-stringify');
 
-function j(v, s, f, w, p) {
-    return _s(jsonStr(v), s, f, w, p);
+function j(value, sign, fill, width, precision) {  // eslint-disable-line max-params
+    return _s(jsonStr(value), sign, fill, width, precision);
 }
 
 module.exports = j;

@@ -3,42 +3,45 @@
 var fillLeft = require('./utils/fill-left');
 var fillRight = require('./utils/fill-right');
 
-/*eslint-disable complexity*/
-function d(v, s, f, w, p) {
+/* eslint-disable complexity */
+function d(value, sign, fill, width, precision) { // eslint-disable-line max-params
     var pfx = '';
 
-    v = Number(v);
+    value = Number(value);
 
-    if (v < 0) {
+    if (value < 0) {
+
         // always add '-' on negative numbers
         pfx = '-';
-    } else if (s === '+') {
+    } else if (sign === '+') {
+
         // add '+' if explicitly specified
         pfx = '+';
     }
 
-    v = String(Math.abs(v));
+    value = String(Math.abs(value));
 
-    if (p) {
-        v = fillLeft(v, '0', p);
+    if (precision) {
+        value = fillLeft(value, '0', precision);
     }
 
-    v = pfx + v;
+    value = pfx + value;
 
-    if (!w) {
-        return v;
+    if (!width) {
+        return value;
     }
 
-    if (!f) {
-        f = ' ';
+    if (!fill) {
+        fill = ' ';
     }
 
-    if (s === '-') {
-        return fillRight(v, f, w);
+    if (sign === '-') {
+        return fillRight(value, fill, width);
     }
 
-    return fillLeft(v, f, w);
+    return fillLeft(value, fill, width);
 }
-/*eslint-enable complexity*/
+
+/* eslint-enable complexity */
 
 module.exports = d;

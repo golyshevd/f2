@@ -50,13 +50,6 @@ var f = require('f2').format;
 f('Lorem %s!', 'ipsum'); // -> 'Lorem ipsum!'
 ```
 
-Also the method is represented as separate module
-
-```js
-var f = require('f2/format');
-f('Lorem %s!', 'ipsum'); // -> 'Lorem ipsum!'
-```
-
 ### Advanced & sugar
 
 #### `String f2.applyArgs(Array args[, Number offsetL[, Number offsetR]])`

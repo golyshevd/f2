@@ -3,26 +3,26 @@
 var fillLeft = require('./utils/fill-left');
 var fillRight = require('./utils/fill-right');
 
-function _s(v, s, f, w, p) {
-    v = String(v);
+function _s(value, sign, fill, width, precision) {  // eslint-disable-line max-params
+    value = String(value);
 
-    if (p) {
-        v = v.substr(0, p);
+    if (precision) {
+        value = value.substr(0, precision);
     }
 
-    if (!w) {
-        return v;
+    if (!width) {
+        return value;
     }
 
-    if (!f) {
-        f = ' ';
+    if (!fill) {
+        fill = ' ';
     }
 
-    if (s === '-') {
-        return fillRight(v, f, w);
+    if (sign === '-') {
+        return fillRight(value, fill, width);
     }
 
-    return fillLeft(v, f, w);
+    return fillLeft(value, fill, width);
 }
 
 module.exports = _s;
