@@ -13,30 +13,30 @@ describe('f2', function () {
         var s = require('../types/s');
 
         it('Should format value as string', function () {
-            assert.strictEqual(s('foo', u, ' ', u, u), 'foo');
-            assert.strictEqual(s({}, u, ' ', u, u), String({}));
+            assert.strictEqual(s('foo', {sign: u, fill: ' ', width: u, precision: u}), 'foo');
+            assert.strictEqual(s({}, {sign: u, fill: ' ', width: u, precision: u}), String({}));
         });
 
         it('Should support precision', function () {
-            assert.strictEqual(s('foobar', u, ' ', u, '3'), 'foo');
+            assert.strictEqual(s('foobar', {sign: u, fill: ' ', width: u, precision: '3'}), 'foo');
         });
 
         it('Should support width', function () {
-            assert.strictEqual(s('foo', u, ' ', '5', u), '  foo');
+            assert.strictEqual(s('foo', {sign: u, fill: ' ', width: '5', precision: u}), '  foo');
         });
 
         it('Should support fill', function () {
-            assert.strictEqual(s('foo', u, 'x', '5', u), 'xxfoo');
-            assert.strictEqual(s('foo', u, '0', '5', u), '00foo');
-            assert.strictEqual(s('foo', u, ':', '5', u), '::foo');
+            assert.strictEqual(s('foo', {sign: u, fill: 'x', width: '5', precision: u}), 'xxfoo');
+            assert.strictEqual(s('foo', {sign: u, fill: '0', width: '5', precision: u}), '00foo');
+            assert.strictEqual(s('foo', {sign: u, fill: ':', width: '5', precision: u}), '::foo');
         });
 
         it('Should support "-" sign', function () {
-            assert.strictEqual(s('foo', '-', ' ', '5', u), 'foo  ');
+            assert.strictEqual(s('foo', {sign: '-', fill: ' ', width: '5', precision: u}), 'foo  ');
         });
 
         it('Should support " " fill by default', function () {
-            assert.strictEqual(s('foo', u, u, '5', u), '  foo');
+            assert.strictEqual(s('foo', {sign: u, fill: u, width: '5', precision: u}), '  foo');
         });
     });
 
@@ -44,19 +44,19 @@ describe('f2', function () {
         var j = require('../types/j');
 
         it('Should stringify JSON', function () {
-            assert.strictEqual(j({}, u, ' ', u, u), '{}');
+            assert.strictEqual(j({}, {sign: u, fill: ' ', width: u, precision: u}), '{}');
         });
 
         it('Should not fail on circular JSON', function () {
             var o = {};
             o.o = o;
             assert.doesNotThrow(function () {
-                j(o, u, ' ', u, u);
+                j(o, {sign: u, fill: ' ', width: u, precision: u});
             });
         });
 
         it('Should support sign, width, precision like "s"', function () {
-            assert.strictEqual(j({foo: 'bar'}, '-', ' ', '5', '3'), '{"f  ');
+            assert.strictEqual(j({foo: 'bar'}, {sign: '-', fill: ' ', width: '5', precision: '3'}), '{"f  ');
         });
     });
 
@@ -64,41 +64,41 @@ describe('f2', function () {
         var d = require('../types/d');
 
         it('Should format as Number', function () {
-            assert.strictEqual(d('5', u, ' ', u, u), '5');
+            assert.strictEqual(d('5', {sign: u, fill: ' ', width: u, precision: u}), '5');
         });
 
         it('Should add "-" to negative numbers', function () {
-            assert.strictEqual(d('-5', u, ' ', u, u), '-5');
+            assert.strictEqual(d('-5', {sign: u, fill: ' ', width: u, precision: u}), '-5');
         });
 
         it('Should support "+" sign', function () {
-            assert.strictEqual(d('-5', '+', ' ', u, u), '-5');
-            assert.strictEqual(d('-5', '-', ' ', u, u), '-5');
-            assert.strictEqual(d('5', '+', ' ', u, u), '+5');
+            assert.strictEqual(d('-5', {sign: '+', fill: ' ', width: u, precision: u}), '-5');
+            assert.strictEqual(d('-5', {sign: '-', fill: ' ', width: u, precision: u}), '-5');
+            assert.strictEqual(d('5', {sign: '+', fill: ' ', width: u, precision: u}), '+5');
         });
 
         it('Should support precision', function () {
-            assert.strictEqual(d('5', u, ' ', u, '3'), '005');
+            assert.strictEqual(d('5', {sign: u, fill: ' ', width: u, precision: '3'}), '005');
         });
 
         it('Should support "-" sign for width', function () {
-            assert.strictEqual(d('5', '-', ' ', '3', u), '5  ');
+            assert.strictEqual(d('5', {sign: '-', fill: ' ', width: '3', precision: u}), '5  ');
         });
 
         it('Should support fill', function () {
-            assert.strictEqual(d('5', '+', 'x', '3', u), 'x+5');
+            assert.strictEqual(d('5', {sign: '+', fill: 'x', width: '3', precision: u}), 'x+5');
         });
 
         it('Should support " " fill by default', function () {
-            assert.strictEqual(d('5', '+', u, '3', u), ' +5');
+            assert.strictEqual(d('5', {sign: '+', fill: u, width: '3', precision: u}), ' +5');
         });
 
         it('Should left padded by " " according to width', function () {
-            assert.strictEqual(d('5', u, ' ', '3', u), '  5');
+            assert.strictEqual(d('5', {sign: u, fill: ' ', width: '3', precision: u}), '  5');
         });
 
         it('Precision should not be trimmed by width', function () {
-            assert.strictEqual(d('5', u, ' ', '3', '5'), '00005');
+            assert.strictEqual(d('5', {sign: u, fill: ' ', width: '3', precision: '5'}), '00005');
         });
 
         it('Should format objects with valueOf methods returning numbers to numbers', function () {
@@ -106,25 +106,23 @@ describe('f2', function () {
                 valueOf: function () {
                     return 42;
                 }
-            }, u, ' ', u, u), '42');
+            }, {sign: u, fill: ' ', width: u, precision: u}), '42');
         });
     });
 
     describe('f2.format', function () {
-        var f2 = new F2().
-            type('s', require('../types/s')).
-            type('d', require('../types/d')).
-            type('j', require('../types/j'));
+        var f2 = require('../bundle');
 
         it('Should interpret "%%" sequences as "%"', function () {
             assert.strictEqual(f2.format('%%%%'), '%%');
-            assert.strictEqual(f2.format('%%s', 'foo'), '%s \'foo\'');
+            assert.strictEqual(f2.format('%%%'), '%%');
+            assert.strictEqual(f2.format('%%s', 'foo'), '%s "foo"');
             assert.strictEqual(f2.format('%%%s', 'foo'), '%foo');
         });
 
         it('Should interpret single unmatched "%" as "%"', function () {
-            assert.strictEqual(f2.format('%'), '%');
-            assert.strictEqual(f2.format('foo%'), 'foo%');
+            assert.strictEqual(f2.format('%s%', 1), '1%');
+            assert.strictEqual(f2.format('%sfoo%', 1), '1foo%');
         });
 
         it('Should format placeholders according to type', function () {
@@ -149,17 +147,17 @@ describe('f2', function () {
         });
 
         it('Should skip unsupported types', function () {
-            assert.strictEqual(f2.format('%h'), '%h');
+            assert.strictEqual(f2.format('%s%h', 1), '1%h');
         });
 
         it('Should inspect extra args', function () {
-            assert.strictEqual(f2.format('%s', 'foo', 'bar'), 'foo \'bar\'');
+            assert.strictEqual(f2.format('%s', 'foo', 'bar'), 'foo "bar"');
             assert.strictEqual(f2.format('%s', 'foo', 1, 2), 'foo 1 2');
             assert.strictEqual(f2.format('%s %s', 1, 2, 3, 4), '1 2 3 4');
             assert.strictEqual(f2.format('%s', 'x', 1, 2), 'x 1 2');
-            assert.strictEqual(f2.format('%y %s', 'foo', 'bar'), '%y foo \'bar\'');
+            assert.strictEqual(f2.format('%y %s', 'foo', 'bar'), '%y foo "bar"');
             assert.strictEqual(f2.format('%s', 'foo', {}), 'foo {}');
-            assert.strictEqual(f2.format({}, 'foo', {}), '{} \'foo\' {}');
+            assert.strictEqual(f2.format({}, 'foo', {}), '{} "foo" {}');
         });
 
         it('Should do nothing if no arguments passed', function () {
@@ -202,8 +200,9 @@ describe('f2', function () {
             assert.strictEqual(f2.format('%(name)s %j', {name: 'Foo'}), 'Foo undefined');
         });
 
-        it('Should correctly handle empty pattern', function () {
-            assert.strictEqual(f2.format('', 42), ' 42');
+        it('Should not handle first argument if it is not pattern', function () {
+            assert.strictEqual(f2.format('', 42), '"" 42');
+            assert.strictEqual(f2.format('asd'), '"asd"');
         });
 
         it('Should ok', function () {
@@ -237,11 +236,11 @@ describe('f2', function () {
             });
 
             it('Should support extra args', function () {
-                assert.strictEqual(_f2.format('%2$s %1$s', 'a', 'b', 'c'), 'b a \'c\'');
-                assert.strictEqual(_f2.format('%1$s %1$s', 'a', 'b', 'c', 'd'), 'a a \'b\' \'c\' \'d\'');
-                assert.strictEqual(_f2.format('%2$s %1$s', 'a', 'b', 'c', 'd'), 'b a \'c\' \'d\'');
-                assert.strictEqual(_f2.format('%3$s %1$s', 'a', 'b', 'c', 'd'), 'c a \'d\'');
-                assert.strictEqual(_f2.format('%1$s %2$s', 'a', 'b', 'c', 'd'), 'a b \'c\' \'d\'');
+                assert.strictEqual(_f2.format('%2$s %1$s', 'a', 'b', 'c'), 'b a "c"');
+                assert.strictEqual(_f2.format('%1$s %1$s', 'a', 'b', 'c', 'd'), 'a a "b" "c" "d"');
+                assert.strictEqual(_f2.format('%2$s %1$s', 'a', 'b', 'c', 'd'), 'b a "c" "d"');
+                assert.strictEqual(_f2.format('%3$s %1$s', 'a', 'b', 'c', 'd'), 'c a "d"');
+                assert.strictEqual(_f2.format('%1$s %2$s', 'a', 'b', 'c', 'd'), 'a b "c" "d"');
             });
 
             it('Should support explicit and implicit indexes', function () {
@@ -256,14 +255,14 @@ describe('f2', function () {
             });
 
             it('Should support explicit and implicit indexes with extra args', function () {
-                assert.strictEqual(_f2.format('%s %1$s %2$s', 'a', 'b', 'c', 'd'), 'a a b \'c\' \'d\'');
-                assert.strictEqual(_f2.format('%1$s %s %2$s', 'a', 'b', 'c', 'd'), 'a a b \'c\' \'d\'');
-                assert.strictEqual(_f2.format('%1$s %2$s %s', 'a', 'b', 'c', 'd'), 'a b a \'c\' \'d\'');
+                assert.strictEqual(_f2.format('%s %1$s %2$s', 'a', 'b', 'c', 'd'), 'a a b "c" "d"');
+                assert.strictEqual(_f2.format('%1$s %s %2$s', 'a', 'b', 'c', 'd'), 'a a b "c" "d"');
+                assert.strictEqual(_f2.format('%1$s %2$s %s', 'a', 'b', 'c', 'd'), 'a b a "c" "d"');
 
-                assert.strictEqual(_f2.format('%s %1$s %2$s %3$s', 'a', 'b', 'c', 'd'), 'a a b c \'d\'');
-                assert.strictEqual(_f2.format('%1$s %s %2$s %3$s', 'a', 'b', 'c', 'd'), 'a a b c \'d\'');
-                assert.strictEqual(_f2.format('%1$s %2$s %s %3$s', 'a', 'b', 'c', 'd'), 'a b a c \'d\'');
-                assert.strictEqual(_f2.format('%1$s %2$s %3$s %s', 'a', 'b', 'c', 'd'), 'a b c a \'d\'');
+                assert.strictEqual(_f2.format('%s %1$s %2$s %3$s', 'a', 'b', 'c', 'd'), 'a a b c "d"');
+                assert.strictEqual(_f2.format('%1$s %s %2$s %3$s', 'a', 'b', 'c', 'd'), 'a a b c "d"');
+                assert.strictEqual(_f2.format('%1$s %2$s %s %3$s', 'a', 'b', 'c', 'd'), 'a b a c "d"');
+                assert.strictEqual(_f2.format('%1$s %2$s %3$s %s', 'a', 'b', 'c', 'd'), 'a b c a "d"');
             });
 
             it('Should support explicit indexes and kwargs', function () {
@@ -272,8 +271,8 @@ describe('f2', function () {
             });
 
             it('Should support explicit indexes and kwargs with extra args', function () {
-                assert.strictEqual(_f2.format('%1$s %(foo)s', 'a', 'c', {foo: 'b'}), 'a b \'c\'');
-                assert.strictEqual(_f2.format('%1$s %(foo)s %2$s', 'a', 'c', 'd', {foo: 'b'}), 'a b c \'d\'');
+                assert.strictEqual(_f2.format('%1$s %(foo)s', 'a', 'c', {foo: 'b'}), 'a b "c"');
+                assert.strictEqual(_f2.format('%1$s %(foo)s %2$s', 'a', 'c', 'd', {foo: 'b'}), 'a b c "d"');
             });
 
             it('Should support explicit indexes, implicit indexes and kwargs', function () {
@@ -282,13 +281,13 @@ describe('f2', function () {
             });
 
             it('Should support explicit indexes, implicit indexes and kwargs width extra args', function () {
-                assert.strictEqual(_f2.format('%1$s %(foo)s %s', 'a', 'c', {foo: 'b'}), 'a b a \'c\'');
-                assert.strictEqual(_f2.format('%1$s %(foo)s %2$s %s', 'a', 'c', 'd', {foo: 'b'}), 'a b c a \'d\'');
+                assert.strictEqual(_f2.format('%1$s %(foo)s %s', 'a', 'c', {foo: 'b'}), 'a b a "c"');
+                assert.strictEqual(_f2.format('%1$s %(foo)s %2$s %s', 'a', 'c', 'd', {foo: 'b'}), 'a b c a "d"');
             });
         });
 
         it('Should not support sign without width', function () {
-            assert.strictEqual(f2.format('%-s', 42), '%-s 42');
+            assert.strictEqual(f2.format('%s %-s', 42, 43), '42 %-s 43');
         });
     });
 
@@ -381,14 +380,11 @@ describe('f2', function () {
         });
     });
 
-    describe('f2.isPattern()', function () {
-        var f2 = new F2().
-            type('s', require('../types/s')).
-            type('d', require('../types/d')).
-            type('j', require('../types/j'));
+    describe('f2.hasSubs()', function () {
+        var f2 = require('../bundle');
 
-        it('Should have .isPattern() method', function () {
-            assert.strictEqual(typeof f2.isPattern, 'function');
+        it('Should have .hasSubs() method', function () {
+            assert.strictEqual(typeof f2.hasSubs, 'function');
         });
 
         var samples = {
@@ -409,22 +405,13 @@ describe('f2', function () {
 
         Object.keys(samples).forEach(function (s) {
             it(util.format('"%s" should %sbe a pattern', s, samples[s] ? '' : 'not '), function () {
-                assert.strictEqual(f2.isPattern(s), samples[s]);
+                assert.strictEqual(f2.hasSubs(s), samples[s]);
             });
         });
     });
 
-    describe('F2.create', function () {
-        it('Should create {F2}', function () {
-            assert.ok(F2.create() instanceof F2);
-        });
-    });
-
     describe('f2.hasKeySub()', function () {
-        var f2 = new F2().
-            type('s', require('../types/s')).
-            type('d', require('../types/d')).
-            type('j', require('../types/j'));
+        var f2 = require('../bundle');
 
         it('Should have .hasKeySub() method', function () {
             assert.strictEqual(typeof f2.hasKeySub, 'function');
@@ -452,10 +439,7 @@ describe('f2', function () {
     });
 
     describe('f2.hasPosSub()', function () {
-        var f2 = new F2().
-            type('s', require('../types/s')).
-            type('d', require('../types/d')).
-            type('j', require('../types/j'));
+        var f2 = require('../bundle');
 
         it('Should have .hasPosSub() method', function () {
             assert.strictEqual(typeof f2.hasPosSub, 'function');

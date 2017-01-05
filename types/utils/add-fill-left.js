@@ -1,6 +1,7 @@
 'use strict';
 
-function fillLeft(value, fill, width) {
+function fillLeft(_value, fill, width) {
+    let value = _value;
 
     while (value.length < width) {
         value = fill + value;

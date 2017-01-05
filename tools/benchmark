@@ -8,7 +8,7 @@ var fs = require('fs');
 var Benchmark = require('benchmark').Benchmark;
 var sprintfjs = require('sprintf-js');
 
-var f = require('../').format;
+var f2 = require('../bundle');
 
 var Suite = Benchmark.Suite;
 var suite = new Suite();
@@ -38,53 +38,66 @@ var member = {
     }
 };
 
-suite.add('  (args) util.format', function () {
+0 &&
+suite.add('(args) util.format', function () {
     util.format('foo %s bar %s baz', '42', '42');
     util.format('foo %s bar %s baz %s zot', '42', '42', '42');
     util.format('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
 });
 
-suite.add('  (args) sprintfjs.sprintf', function () {
+0 &&
+suite.add('(args) sprintfjs.sprintf', function () {
     sprintfjs.sprintf('foo %s bar %s baz', '42', '42');
     sprintfjs.sprintf('foo %s bar %s baz %s zot', '42', '42', '42');
     sprintfjs.sprintf('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
 });
 
-suite.add('! (args) f', function () {
-    f('foo %s bar %s baz', '42', '42');
-    f('foo %s bar %s baz %s zot', '42', '42', '42');
-    f('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
+0 &&
+suite.add('(args) f2.subst', function () {
+    f2.subst('foo %s bar %s baz', '42', '42');
+    f2.subst('foo %s bar %s baz %s zot', '42', '42', '42');
+    f2.subst('foo %s bar %s baz %s zot %s omg',  '42', '42', '42', '42');
 });
 
-suite.add('  (kwargs) sprintfjs.sprintf', function () {
+0 &&
+suite.add('(kwargs) sprintfjs.sprintf', function () {
     sprintfjs.sprintf('%(name)s wants %(wants)s', member.person);
     sprintfjs.sprintf('%(person.name)s wants %(person.wants)s', member);
     sprintfjs.sprintf('%(member.person.name)s wants %(member.person.wants)s', {member: member});
 });
 
-suite.add('! (kwargs) f', function () {
-    f('%(name)s wants %(wants)s', member.person);
-    f('%(person.name)s wants %(person.wants)s', member);
-    f('%(member.person.name)s wants %(member.person.wants)s', {member: member});
+0 &&
+suite.add('(kwargs) f2.subst', function () {
+    f2.subst('%(name)s wants %(wants)s', member.person);
+    f2.subst('%(person.name)s wants %(person.wants)s', member);
+    f2.subst('%(member.person.name)s wants %(member.person.wants)s', {member: member});
 });
 
-suite.add('  (args swapping) sprintfjs.sprintf', function () {
+0 &&
+suite.add('(args swapping) sprintfjs.sprintf', function () {
     sprintfjs.sprintf('%1$s', '1');
     sprintfjs.sprintf('%2$s %1$s', '1', '2');
     sprintfjs.sprintf('%3$s %2$s %1$s', '1', '2', '3');
 });
 
-suite.add('! (args swapping) f', function () {
-    f('%1$s', '1');
-    f('%2$s %1$s', '1', '2');
-    f('%3$s %2$s %1$s', '1', '2', '3');
+0 &&
+suite.add('(args swapping) f2.subst', function () {
+    f2.subst('%1$s', '1');
+    f2.subst('%2$s %1$s', '1', '2');
+    f2.subst('%3$s %2$s %1$s', '1', '2', '3');
+});
+
+var o = {x: 42, y: {z: 12, foo: {bar: 11}}};
+
+suite.add('!avg', function () {
+    f2.subst('%s %(x)s %(y.z)s %(y.foo.bar)s %2$s %1$s %s', '1', '2', '3', '4', o);
 });
 
 suite.on('cycle', function (event) {
-    var name = event.target.name;
+    const {name, hz, stats: {rme}} = event.target;
 
     if (/^\s*!/.test(name)) {
-        currResults[name] = event.target.hz;
+        currResults[name] = hz + (hz / 100) * rme;
     }
 
     console.log(String(event.target));
@@ -96,7 +109,7 @@ suite.on('complete', function () {
     Object.keys(currResults).forEach(function (name) {
         var regressSize = (prevResults[name] / currResults[name]) - 1;
         if (prevResults.hasOwnProperty(name) && regressSize > REGRESS_WATERMARK) {
-            throw new Error(f('Regression in "%s": %d%!', name, regressSize * 100));
+            throw new Error(f2.subst('Regression in "%s": %d%!', name, Math.round(regressSize * 10000) / 100));
         }
     });
 
@@ -109,11 +122,6 @@ suite.run({
     queued: true,
     async: true
 });
-
-function sleep(ms) {
-    var start = new Date();
-    while (start + ms > Date.now()) {}
-}
 
 process.on('uncaughtException', function (err) {
     process.stderr.write(err.stack);

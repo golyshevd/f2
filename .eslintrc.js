@@ -112,7 +112,7 @@ module.exports = {
         'no-new-wrappers': e(),                     // http://eslint.org/docs/rules/no-new-wrappers
         'no-octal': e(),                            // http://eslint.org/docs/rules/no-octal
         'no-octal-escape': e(),                     // http://eslint.org/docs/rules/no-octal-escape
-        'no-param-reassign': off(),                 // http://eslint.org/docs/rules/no-param-reassign
+        'no-param-reassign': e(),                   // http://eslint.org/docs/rules/no-param-reassign
         'no-proto': e(),                            // http://eslint.org/docs/rules/no-proto
         'no-redeclare': e(),                        // http://eslint.org/docs/rules/no-redeclare
         'no-return-assign': e(),                    // http://eslint.org/docs/rules/no-return-assign
@@ -287,7 +287,7 @@ module.exports = {
         'one-var-declaration-per-line': e([         // http://eslint.org/docs/rules/one-var-declaration-per-line
             'always'
         ]),
-        'operator-assignment': e(['always']),       // http://eslint.org/docs/rules/operator-assignment
+        'operator-assignment': e(['never']),        // http://eslint.org/docs/rules/operator-assignment
         'operator-linebreak': e(['after', {         // http://eslint.org/docs/rules/operator-linebreak
             overrides: {}
         }]),

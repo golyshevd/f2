@@ -1,28 +1,21 @@
 'use strict';
 
-var fillLeft = require('./utils/fill-left');
-var fillRight = require('./utils/fill-right');
+const addFill = require('./utils/add-fill');
 
-function _s(value, sign, fill, width, precision) {  // eslint-disable-line max-params
-    value = String(value);
-
+function addPrecision(str, precision) {
     if (precision) {
-        value = value.substr(0, precision);
+        return str.substr(0, precision);
     }
 
-    if (!width) {
-        return value;
-    }
-
-    if (!fill) {
-        fill = ' ';
-    }
-
-    if (sign === '-') {
-        return fillRight(value, fill, width);
-    }
-
-    return fillLeft(value, fill, width);
+    return str;
 }
 
-module.exports = _s;
+function formatS(_value, {sign, fill, width, precision}) {
+    let value = String(_value);
+
+    value = addPrecision(value, precision);
+
+    return addFill(value, fill, sign, width);
+}
+
+module.exports = formatS;

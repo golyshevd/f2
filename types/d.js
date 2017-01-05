@@ -1,47 +1,37 @@
 'use strict';
 
-var fillLeft = require('./utils/fill-left');
-var fillRight = require('./utils/fill-right');
+const addFillLeft = require('./utils/add-fill-left');
+const addFill = require('./utils/add-fill');
 
-/* eslint-disable complexity */
-function d(value, sign, fill, width, precision) { // eslint-disable-line max-params
-    var pfx = '';
-
-    value = Number(value);
-
+function addPrefix(str, value, sign) {
     if (value < 0) {
-
         // always add '-' on negative numbers
-        pfx = '-';
-    } else if (sign === '+') {
+        return '-' + str;
+    }
 
+    if (sign === '+') {
         // add '+' if explicitly specified
-        pfx = '+';
+        return '+' + str;
     }
 
-    value = String(Math.abs(value));
-
-    if (precision) {
-        value = fillLeft(value, '0', precision);
-    }
-
-    value = pfx + value;
-
-    if (!width) {
-        return value;
-    }
-
-    if (!fill) {
-        fill = ' ';
-    }
-
-    if (sign === '-') {
-        return fillRight(value, fill, width);
-    }
-
-    return fillLeft(value, fill, width);
+    return str;
 }
 
-/* eslint-enable complexity */
+function addPrecision(str, precision) {
+    if (precision) {
+        return addFillLeft(str, '0', precision);
+    }
 
-module.exports = d;
+    return str;
+}
+
+function formatD(_value, {sign, fill, width, precision}) {
+    let value = String(Math.abs(_value));
+
+    value = addPrecision(value, precision);
+    value = addPrefix(value, _value, sign);
+
+    return addFill(value, fill, sign, width);
+}
+
+module.exports = formatD;

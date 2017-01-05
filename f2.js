@@ -1,361 +1,377 @@
 'use strict';
 
-var util = require('util');
+const jsonStr = require('fast-safe-stringify');
 
-var LRUDict = require('lru-dict');
-var obusGet = require('obus/_get');
-var obusParse = require('obus/parse');
+const LRUDict = require('lru-dict');
+const obusGet = require('obus/_get');
+const obusParse = require('obus/parse');
 
-var R_PATH = /(?:\(((?:"(?:\\[\s\S]|[^"])*"|'(?:\\[\s\S]|[^'])*'|[^()]+)+)\))/.source;
-var R_SWAP = /([^0]\d*)\$/.source;
-var R_SIGN = /([+-])?/.source;
-var R_FILL = /(?:([\s\S]):)/.source;
-var R_LENG = /(\d+)/.source;
-var R_PREC = /(?:\.(\d+))/.source;
-var R_TYPE = /([a-z])/.source;
-var R_TEXT = /([^%]+)/.source;
-var R_PERC = /(%)%?/.source;
+const R_PATH = /(?:\(((?:"(?:\\[\s\S]|[^"])*"|'(?:\\[\s\S]|[^'])*'|[^()]+)+)\))/.source;
+const R_SWAP = /([^0]\d*)\$/.source;
+const R_SIGN = /([+-])?/.source;
+const R_FILL = /(?:([\s\S]):)/.source;
+const R_LENG = /(\d+)/.source;
+const R_PREC = /(?:\.(\d+))/.source;
+const R_TYPE = /([a-z])/.source;
+const R_TEXT = /([^%]+)/.source;
+const R_PERC = /(%)%?/.source;
 
-var R_LEX = util.format('%(?:%s|%s|)(?:(?:%s)?%s?%s)?%s?%s|%s|%s',
-    R_PATH, R_SWAP, R_SIGN, R_FILL, R_LENG, R_PREC, R_TYPE, R_TEXT, R_PERC);
+const R_LEX = `^%(?:${R_PATH}|${R_SWAP}|)(?:(?:${R_SIGN})?${R_FILL}?${R_LENG})?${R_PREC}?${R_TYPE}|${R_TEXT}|${R_PERC}`;
 
-var LEX = new RegExp(R_LEX, 'g');
-
-function TmplItem(type, text, path, index, sign, fill, width, precision, subType) {
-    /* eslint max-params: 1 */
-    this.type = type;
-    this.text = text;
-    this.path = path;
-    this.index = index;
-    this.sign = sign;
-    this.fill = fill;
-    this.width = width;
-    this.precision = precision;
-    this.subType = subType;
-}
+const LEX = new RegExp(R_LEX, '');
 
 /**
  * @class F2
  * */
-function F2() {
-    this.__cache = new LRUDict(255);
+class F2 {
 
-    this.__types = {};
+    constructor() {
+        this.__cache = new LRUDict(255);
+        this.__types = Object.create(null);
+    }
 
     /**
-     * @public
-     * @memberOf {F2}
-     * @method
+     * @param {...*} args Optional pattern and substitution params
      *
-     * @returns {String}
+     * @returns {String} Format result
      * */
-    this.format = this.__f2();
-}
-
-/**
- * @public
- * @static
- * @memberOf {F2}
- * @method
- *
- * @param {Object} [params]
- *
- * @returns {F2}
- * */
-F2.create = function (params) {
-    return new this(params);
-};
-
-/**
- * @public
- * @memberOf {F2}
- * @method
- *
- * @param {String} name
- * @param {Function} formatter
- *
- * @returns {F2}
- * */
-F2.prototype.type = function (name, formatter) {
-    if (typeof name !== 'string' || name.length !== 1) {
-        throw new TypeError('Type name should be a string character');
+    format(...args) {
+        return this.__applyArgs(args, 0, 0);
     }
 
-    if (typeof formatter !== 'function') {
-        throw new TypeError('Type formatter should be a function');
+    /**
+     * @param {String} f Pattern
+     * @param {...*} args Substitution params
+     *
+     * @returns {String} Format result
+     * */
+    subst(f, ...args) {
+        return this.__applyArgsTo(this.__pickTmpl(f), args, 0, 0);
     }
 
-    this.__types[name] = formatter;
-    // reset cache
-    this.__cache.length = 0;
-
-    return this;
-};
-
-/**
- * @public
- * @memberOf {F2}
- * @method
- *
- * @param {Array} args
- * @param {Number} [offsetLeft]
- * @param {Number} [offsetRight]
- *
- * @returns {String}
- * */
-F2.prototype.applyArgs = function (args, offsetLeft, offsetRight) {
-    return this.__applyArgs(args, offsetLeft | 0, offsetRight | 0);
-};
-
-/**
- * @public
- * @memberOf {F2}
- * @method
- *
- * @param {String} f
- * @param {Array} args
- * @param {Number} [offsetLeft]
- * @param {Number} [offsetRight]
- *
- * @returns {String}
- * */
-F2.prototype.applyArgsTo = function (f, args, offsetLeft, offsetRight) {
-    return this.__applyArgsTo(f, args, offsetLeft | 0, offsetRight | 0);
-};
-
-/**
- * Check if the passed argument is pattern
- *
- * @public
- * @memberOf {F2}
- * @method
- *
- * @param {String} f
- *
- * @returns {Boolean}
- * */
-F2.prototype.isPattern = function (f) {
-    var tmpl = this.__pickTmpl(f);
-
-    return (tmpl.containsKwargs | tmpl.restArgsIndex) > 0;
-};
-
-/**
- * Check if the passed pattern has key substitution
- *
- * @public
- * @memberOf {F2}
- * @method
- *
- * @param {String} f
- * @param {String} name
- *
- * @returns {Boolean}
- * */
-F2.prototype.hasKeySub = function (f, name) {
-    var path = obusParse(name);
-
-    return this.__pickTmpl(f).items.some(function (item) {
-        return item.type === 'KEY' &&
-            path.every(function (node, i) {
-                return node === item.path[i];
-            });
-    });
-};
-
-/**
- * Check if the passed pattern has index substitution
- *
- * @public
- * @memberOf {F2}
- * @method
- *
- * @param {String} f
- * @param {Number} name
- *
- * @returns {Boolean}
- * */
-F2.prototype.hasPosSub = function (f, name) {
-    name -= 1;
-    return this.__pickTmpl(f).items.some(function (item) {
-        return item.type === 'POS' && item.index === name;
-    });
-};
-
-/**
- * @protected
- * @memberOf {F2}
- * @method
- *
- * @returns {String}
- * */
-F2.prototype._inspect = function (v) {
-    return util.inspect(v);
-};
-
-F2.prototype.__applyArgs = function (args, offsetLeft, offsetRight) {
-    if (typeof args[offsetLeft] === 'string') {
-        return this.__applyArgsTo(args[offsetLeft], args, offsetLeft + 1, offsetRight);
+    /**
+     * Makes format method static
+     *
+     * @returns {Function} Static format method
+     * */
+    detach() {
+        return (...args) => this.format(...args);
     }
 
-    return this.__appendRestArgs([], args, offsetLeft, offsetRight);
-};
+    /**
+     * @param {String} name Type name
+     * @param {Function} formatter Formatter function
+     *
+     * @returns {F2} Current instance
+     * */
+    type(name, formatter) {
+        if (typeof name !== 'string' || name.length !== 1) {
+            throw new TypeError('Type name should be a string character');
+        }
 
-F2.prototype.__applyArgsTo = function (f, args, offsetLeft, offsetRight) {
-    var tmpl = this.__pickTmpl(f);
+        if (typeof formatter !== 'function') {
+            throw new TypeError('Type formatter should be a function');
+        }
 
-    offsetRight += Number(tmpl.containsKwargs);
+        this.__types[name] = formatter;
+        // reset parser cache coz it depends on types dict
+        this.__cache.length = 0;
 
-    return this.__appendRestArgs([this.__substituteTmplItems(tmpl.items, args, offsetLeft, offsetRight)],
-        args, offsetLeft + tmpl.restArgsIndex, offsetRight);
-};
+        return this;
+    }
 
-F2.prototype.__pickTmpl = function (f) {
-    var tmpl = this.__cache.get(f);
+    /**
+     * @param {Array} args Optional Pattern and substitution params in array
+     * @param {Number} [offsetLeft] Offset from left for substitution params list
+     * @param {Number} [offsetRight] Offset from right for substitution params list
+     *
+     * @returns {String} Format result
+     * */
+    applyArgs(args, offsetLeft, offsetRight) {
+        return this.__applyArgs(args, offsetLeft | 0, offsetRight | 0);
+    }
 
-    if (!tmpl) {
-        tmpl = this.__parseF(f);
+    /**
+     * @param {String} f Pattern
+     * @param {Array} args Substitution params in array
+     * @param {Number} [offsetLeft] Offset from left for substitution params list
+     * @param {Number} [offsetRight] Offset from right for substitution params list
+     *
+     * @returns {String} Format result
+     * */
+    applyArgsTo(f, args, offsetLeft, offsetRight) {
+        return this.__applyArgsTo(this.__pickTmpl(f), args, offsetLeft | 0, offsetRight | 0);
+    }
+
+    /**
+     * Check if the passed argument has substitutions
+     *
+     * @param {String} f String form check for substitutions
+     *
+     * @returns {Boolean} Check result
+     * */
+    hasSubs(f) {
+        const {posArgsCount, kwargsCount} = this.__pickTmpl(f);
+
+        return posArgsCount + kwargsCount > 0;
+    }
+
+    /**
+     * Check if the passed pattern has key substitution
+     *
+     * @param {String} f Pattern
+     * @param {String} name Name of keyword substitution
+     *
+     * @returns {Boolean} Check result
+     * */
+    hasKeySub(f, name) {
+        const path = obusParse(name);
+
+        return this.__pickTmpl(f).items.some((item) =>
+            item.type === 'KEY' && path.every((node, i) => node === item.path[i]));
+    }
+
+    /**
+     * Check if the passed pattern has index substitution
+     *
+     * @param {String} f Pattern
+     * @param {Number} index Index of positional parameter
+     *
+     * @returns {Boolean} Check result
+     * */
+    hasPosSub(f, index) {
+        const name = index - 1;
+
+        return this.__pickTmpl(f).items.some((item) => item.type === 'POS' && item.index === name);
+    }
+
+    /**
+     * @protected
+     *
+     * @param {*} v Value for inspection
+     *
+     * @returns {String} Inspection result
+     * */
+    _inspect(v) {
+        return jsonStr(v);
+    }
+
+    __applyArgs(args, offsetLeft, offsetRight) {
+        const f = args[offsetLeft];
+        const tmpl = this.__pickTmpl(f);
+        const {posArgsCount, kwargsCount, escapesCount} = tmpl;
+
+        if (posArgsCount + kwargsCount + escapesCount) {
+            return this.__applyArgsTo(tmpl, args, offsetLeft + 1, offsetRight);
+        }
+
+        const argsCount = args.length;
+        const fromIndex = offsetLeft;
+        const lastIndex = argsCount - offsetRight;
+
+        if (argsCount > 0) {
+            return this.__appendRestArgs(this._inspect(args[fromIndex]), args, fromIndex + 1, lastIndex);
+        }
+
+        return this.__appendRestArgs('', args, fromIndex, lastIndex);
+    }
+
+    __applyArgsTo(tmpl, args, offsetLeft, _offsetRight) {
+        const {kwargsCount, restArgsIndex, items} = tmpl;
+        const offsetRight = _offsetRight + kwargsCount > 0;
+        const argsCount = args.length;
+        const lastIndex = argsCount - offsetRight;
+        const str = this.__reduceItems(items, args, offsetLeft, lastIndex);
+        const fromIndex = offsetLeft + restArgsIndex;
+
+        if (fromIndex < lastIndex) {
+            return this.__appendRestArgs(str, args, fromIndex, lastIndex);
+        }
+
+        return str;
+    }
+
+    __reduceItems(items, args, offsetLeft, lastIndex) {
+        return items.reduce((str, tmplItem) =>
+            str + this.__reduceItem(tmplItem, args, offsetLeft, lastIndex), '');
+    }
+
+    __appendRestArgs(_str, args, _fromIndex, lastIndex) {
+        let str = _str;
+        let fromIndex = _fromIndex;
+
+        while (fromIndex < lastIndex) {
+            str = str + ' ' + this._inspect(args[fromIndex]);
+            fromIndex = fromIndex + 1;
+        }
+
+        return str;
+    }
+
+    __pickTmpl(_f) {
+        const f = String(_f);
+
+        return this.__getCacheTmpl(f) || this.__setCacheTmpl(f);
+    }
+
+    __setCacheTmpl(f) {
+        const tmpl = this.__parseF(f);
+
         this.__cache.set(f, tmpl);
+
+        return tmpl;
     }
 
-    return tmpl;
-};
+    __getCacheTmpl(f) {
+        return this.__cache.get(f);
+    }
 
-F2.prototype.__parseF = function (f) {
-    /* eslint complexity: 0 */
-    var autoIndex = 0;
-    var containsKwargs = false;
-    var itemsCount = 0;
-    var m = null;
-    var restArgsIndex = -1;
-    var tmplItems = [];
+    __parseF(_f) {
+        /* eslint complexity: 0 */
+        let autoIndex = 0;
+        let kwargsCount = 0;
+        let posArgsCount = 0;
+        let m = null;
+        let restArgsIndex = -1;
+        let escapesCount = 0;
+        let prevItem = {};
+        let f = _f;
 
-    LEX.lastIndex = 0;
+        const items = [];
 
-    /* eslint no-cond-assign: 0 */
-    while (m = LEX.exec(f)) {
+        /* eslint no-cond-assign: 0 */
+        while (m = LEX.exec(f)) {
+            let text = m[0];
+            let path = m[1];
+            let index = m[2] | 0;
+            const sign = m[3] || '';
+            const fill = m[4] || '';
+            const width = m[5] | 0;
+            const precision = m[6] | 0;
+            const subType = m[7];
 
-        if (!m[7] || typeof this.__types[m[7]] !== 'function') {
-            // text node (no type match, or no type formatter)
-            if (itemsCount > 0 && tmplItems[itemsCount - 1].type === 'TXT') {
-                // merge sibling text nodes
-                tmplItems[itemsCount - 1].text += m[8] || m[9] || m[0];
-            } else {
-                itemsCount = tmplItems.push(new TmplItem('TXT',
-                    m[8] || m[9] || m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7]));
+            f = f.substr(m.index + text.length);
+
+            if (!subType || typeof this.__types[subType] !== 'function') {
+                const rest = m[8];
+                const escape = m[9];
+
+                text = rest || escape || text;
+
+                escapesCount = escapesCount + Boolean(escape);
+
+                // text node (no type match, or no type formatter)
+                if (prevItem.type === 'TXT') {
+                    // merge sibling text nodes
+                    prevItem.text = prevItem.text + text;
+                } else {
+                    prevItem = {
+                        type: 'TXT',
+                        text,
+                        path: [],
+                        index,
+                        sign,
+                        fill,
+                        width,
+                        precision,
+                        subType: ''
+                    };
+                    items.push(prevItem);
+                }
+
+                continue;
             }
 
-            continue;
+            if (path) {
+                // keyword argument
+                prevItem = {
+                    type: 'KEY',
+                    text,
+                    path: obusParse(path),
+                    index,
+                    sign,
+                    fill,
+                    width,
+                    precision: precision,
+                    subType
+                };
+                items.push(prevItem);
+                kwargsCount = kwargsCount + 1;
+
+                continue;
+            }
+
+            // positional arg
+            if (index) {
+                // explicit index like `%1$s`
+                index = index - 1;
+            } else {
+                index = autoIndex;
+                // implicit index like `%s`
+                autoIndex = autoIndex + 1;
+            }
+
+            restArgsIndex = Math.max(index, restArgsIndex);
+            posArgsCount = posArgsCount + 1;
+
+            prevItem = {
+                type: 'POS',
+                text,
+                path: [],
+                index,
+                sign,
+                fill,
+                width,
+                precision,
+                subType
+            };
+            items.push(prevItem);
         }
 
-        if (m[1]) {
-            // keyword argument
-            itemsCount = tmplItems.push(new TmplItem('KEY',
-                m[0], obusParse(m[1]), m[2], m[3], m[3], m[5], m[6], m[7]));
-            containsKwargs = true;
+        restArgsIndex = restArgsIndex + 1;
 
-            continue;
-        }
-
-        // positional arg
-
-        if (m[2]) {
-            // explicit index like `%1$s`
-            m[2] -= 1;
-        } else {
-            // implicit index like `%s`
-            m[2] = autoIndex;
-            autoIndex += 1;
-        }
-
-        restArgsIndex = Math.max(m[2], restArgsIndex);
-
-        itemsCount = tmplItems.push(new TmplItem('POS',
-            m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7]));
+        return {
+            items,
+            kwargsCount,
+            posArgsCount,
+            escapesCount,
+            restArgsIndex
+        };
     }
 
-    restArgsIndex += 1;
+    __reduceItem(tmplItem, args, offsetLeft, lastIndex) {
+        const {type, text, index, path} = tmplItem;
 
-    return {
-        containsKwargs: containsKwargs,
-        items: tmplItems,
-        restArgsIndex: restArgsIndex
-    };
-};
-
-F2.prototype.__appendRestArgs = function (parts, args, offsetLeft, offsetRight) {
-    var i = offsetLeft;
-    var l = args.length - offsetRight;
-    var j = parts.length;
-
-    while (i < l) {
-        parts[j] = this._inspect(args[i]);
-        j += 1;
-        i += 1;
-    }
-
-    return parts.join(' ');
-};
-
-F2.prototype.__substituteTmplItems = function (tmplItems, args, offsetLeft, offsetRight) {
-    var argc = args.length - offsetRight;
-    var tmplItem;
-    var tmplItemsCount = tmplItems.length;
-    var chunks = new Array(tmplItemsCount);
-    var subst;
-
-    while (tmplItemsCount) {
-        tmplItemsCount -= 1;
-        tmplItem = tmplItems[tmplItemsCount];
-
-        if (tmplItem.type === 'TXT') {
-            chunks[tmplItemsCount] = tmplItem.text;
-            continue;
+        if (type === 'TXT') {
+            return text;
         }
 
-        if (tmplItem.type === 'KEY') {
-            subst = obusGet(args[argc], tmplItem.path);
-        } else
+        if (type === 'KEY') {
+            return this.__formatSubst(obusGet(args[lastIndex], path), tmplItem);
+        }
+
         // tmplItem.type === 'POS'
-        if (tmplItem.index + offsetLeft < argc) {
+        const posIndex = index + offsetLeft;
+
+        if (posIndex < lastIndex) {
             // use positional arg if index fit to range
-            subst = args[tmplItem.index + offsetLeft];
-        } else {
-            // index is not fit to range
-            subst = undefined; // eslint-disable-line no-undefined
+            return this.__formatSubst(args[posIndex], tmplItem);
         }
 
-        chunks[tmplItemsCount] = this.__formatPlaceholder(tmplItem, subst);
+        return this.__formatSubst(undefined, tmplItem); // eslint-disable-line no-undefined
     }
 
-    return chunks.join('');
-};
+    __formatSubst(subst, tmplItem) {
+        const formatter = this.__types[tmplItem.subType];
 
-F2.prototype.__formatPlaceholder = function (ph, subst) {
-    if (typeof subst === 'function') {
-        subst = subst();
-    }
-
-    return this.__types[ph.subType](subst, ph.sign, ph.fill, ph.width, ph.precision);
-};
-
-F2.prototype.__f2 = function () {
-    var that = this;
-
-    function format() {
-        // clone arguments to allow V8 optimize the function
-        var argc = arguments.length;
-        var args = new Array(argc);
-
-        while (argc) {
-            argc -= 1;
-            args[argc] = arguments[argc];
+        if (typeof subst === 'function') {
+            // TODO make declarative? drop support?
+            return formatter(subst(), tmplItem);
         }
 
-        return that.__applyArgs(args, 0, 0);
+        return formatter(subst, tmplItem);
     }
 
-    return format;
-};
+}
 
 module.exports = F2;

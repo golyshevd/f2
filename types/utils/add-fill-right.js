@@ -1,9 +1,10 @@
 'use strict';
 
-function fillRight(value, fill, width) {
+function fillRight(_value, fill, width) {
+    let value = _value;
 
     while (value.length < width) {
-        value += fill;
+        value = value + fill;
     }
 
     return value;

@@ -1,14 +1,20 @@
-#!/usr/bin/env node --trace-deopt
+#!/usr/bin/env node --trace-deopt --trace-deprecation
 'use strict';
 
-var f2 = require('../');
-var l = 10000000;
+const f2 = require('../bundle');
 
-while (l > 0) {
-    l -= 1;
-    f2.format('Polly wants %s', 'cracker');
-    f2.format('Polly wants %(what)s', {what: 'cracker'});
-    f2.format('%s wants %(what)s', 'Polly', {what: 'cracker'});
-    f2.format('%(who)s wants %(what)s', {who: 'Polly', what: 'cracker'});
-    f2.format('%(.data.who)s wants %(.data.what)s', {data: {who: 'Polly', what: 'cracker'}});
+const data2 = {who: 'Polly', what: 'cracker'};
+const data3 = {data: data2};
+
+function sample(f2, data2, data3) {
+    f2.subst('Polly wants %s %d', data2.what, 2);
+    f2.subst('Polly wants %(what)s', data2);
+    f2.subst('%s wants %(what)s', data2.who, data2);
+    f2.subst('%(who)s wants %(what)s', data2);
+    f2.subst('%(who)j wants %(what)s', data2);
+    f2.subst('%(.data.who)s wants %(.data.what)s', 'and jam', data3);
+}
+
+for (let i = 0, l = 1000000; i < l; i = i + 1) {
+    sample(f2, data2, data3);
 }
